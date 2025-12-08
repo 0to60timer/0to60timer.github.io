@@ -148,6 +148,33 @@ class SpeedTracker {
     this.initChart();
     this.renderMetricSelection();
     this.renderMetrics();
+    
+    // Auto-start run on page load
+    setTimeout(() => {
+      this.autoStartRun();
+    }, 500); // Small delay to ensure everything is initialized
+  }
+
+  async autoStartRun() {
+    // Request permissions and start automatically
+    try {
+      // Request device motion permission if needed (iOS)
+      if ('DeviceMotionEvent' in window && typeof DeviceMotionEvent.requestPermission === 'function') {
+        const permission = await DeviceMotionEvent.requestPermission();
+        if (permission !== 'granted') {
+          console.log('Motion permission not granted, waiting for manual start');
+          return;
+        }
+        window.addEventListener('devicemotion', (event) => this.handleDeviceMotion(event));
+      }
+      
+      // Start the run
+      this.startRun();
+    } catch (error) {
+      // If auto-start fails (e.g., user needs to interact first on iOS), 
+      // just wait for manual start button click
+      console.log('Auto-start not possible, waiting for user interaction');
+    }
   }
 
   initSensors() {
@@ -172,8 +199,8 @@ class SpeedTracker {
   }
 
   async startRun() {
-    // Request iOS permissions if needed
-    if (typeof DeviceMotionEvent.requestPermission === 'function') {
+    // Request iOS permissions if needed and not already done
+    if (typeof DeviceMotionEvent.requestPermission === 'function' && !this.isRunning) {
       try {
         const permission = await DeviceMotionEvent.requestPermission();
         if (permission !== 'granted') {
@@ -185,6 +212,11 @@ class SpeedTracker {
         alert('Unable to access sensors');
         return;
       }
+    }
+    
+    // Don't start again if already running
+    if (this.isRunning) {
+      return;
     }
     
     // Start calibration

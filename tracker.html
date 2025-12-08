@@ -160,12 +160,14 @@
       align-items: center;
       padding: 1rem 0;
       min-height: 220px;
+      flex: 0 0 auto;
     }
 
     /* Chart Section */
     .chart-section {
       flex: 1;
       min-height: 200px;
+      max-width: calc(100% - 180px);
       display: flex;
       align-items: center;
     }
@@ -197,6 +199,7 @@
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
+      width: 160px;
     }
 
     .speed-sign {
@@ -246,7 +249,8 @@
       display: flex;
       gap: 1rem;
       justify-content: center;
-      padding: 1rem 0;
+      padding: 0.5rem 0;
+      flex: 0 0 auto;
     }
 
     .control-button {
@@ -479,8 +483,6 @@
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
-      max-height: 300px;
-      overflow-y: auto;
     }
 
     .metric-checkbox-item {
@@ -818,6 +820,11 @@
 
   <!-- Main Tracker -->
   <main class="tracker-container">
+    <!-- Controls at Top -->
+    <section class="controls">
+      <button class="control-button btn-start" id="startBtn">Start Run</button>
+    </section>
+
     <!-- Speed and Chart Section (Side by Side) -->
     <section class="speed-chart-section">
       <!-- Chart on Left -->
@@ -834,11 +841,6 @@
           <div class="speed-unit" id="speedUnit">mph</div>
         </div>
       </div>
-    </section>
-
-    <!-- Controls -->
-    <section class="controls">
-      <button class="control-button btn-start" id="startBtn">Start Run</button>
     </section>
 
     <!-- Metrics -->
