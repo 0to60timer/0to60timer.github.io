@@ -5,6 +5,12 @@ class SpeedTracker {
     this.darkMode = localStorage.getItem('darkMode') !== 'false'; // default true
     this.isMetric = localStorage.getItem('isMetric') === 'true'; // default false (mph)
     
+    // Load visible metrics settings (separate for mph and km/h)
+    this.visibleMetrics = {
+      mph: JSON.parse(localStorage.getItem('visibleMetrics_mph') || 'null'),
+      kmh: JSON.parse(localStorage.getItem('visibleMetrics_kmh') || 'null')
+    };
+    
     // State
     this.isRunning = false;
     this.isCalibrated = false;
@@ -97,7 +103,7 @@ class SpeedTracker {
       speedUnit: document.getElementById('speedUnit'),
       speedSign: document.getElementById('speedSign'),
       startBtn: document.getElementById('startBtn'),
-      stopBtn: document.getElementById('stopBtn'),
+      headerStopBtn: document.getElementById('headerStopBtn'),
       resetBtn: document.getElementById('resetBtn'),
       chart: document.getElementById('chart'),
       metricsGrid: document.getElementById('metricsGrid'),
@@ -107,6 +113,7 @@ class SpeedTracker {
       closeSettings: document.getElementById('closeSettings'),
       darkModeToggle: document.getElementById('darkModeToggle'),
       metricToggle: document.getElementById('metricToggle'),
+      metricSelection: document.getElementById('metricSelection'),
       calibrationModal: document.getElementById('calibrationModal'),
       calibrationProgress: document.getElementById('calibrationProgress'),
       calibrationText: document.getElementById('calibrationText'),
@@ -126,7 +133,7 @@ class SpeedTracker {
     
     // Event listeners
     this.elements.startBtn.addEventListener('click', () => this.startRun());
-    this.elements.stopBtn.addEventListener('click', () => this.stopRun());
+    this.elements.headerStopBtn.addEventListener('click', () => this.stopRun());
     this.elements.resetBtn.addEventListener('click', () => this.showResetConfirmation());
     this.elements.settingsButton.addEventListener('click', () => this.openSettings());
     this.elements.closeSettings.addEventListener('click', () => this.closeSettings());
@@ -139,6 +146,7 @@ class SpeedTracker {
     
     // Initialize chart
     this.initChart();
+    this.renderMetricSelection();
     this.renderMetrics();
   }
 
@@ -206,7 +214,7 @@ class SpeedTracker {
     
     // Update UI
     this.elements.startBtn.classList.add('hidden');
-    this.elements.stopBtn.classList.remove('hidden');
+    this.elements.headerStopBtn.classList.add('active');
     this.elements.recordingIndicator.classList.add('active');
     
     this.updateChart();
@@ -215,7 +223,7 @@ class SpeedTracker {
   stopRun() {
     this.isRunning = false;
     this.elements.startBtn.classList.remove('hidden');
-    this.elements.stopBtn.classList.add('hidden');
+    this.elements.headerStopBtn.classList.remove('active');
     this.elements.recordingIndicator.classList.remove('active');
     
     this.saveRun();
@@ -715,17 +723,28 @@ class SpeedTracker {
   }
 
   renderMetrics() {
+    const unitKey = this.isMetric ? 'kmh' : 'mph';
+    const currentVisibleMetrics = this.visibleMetrics[unitKey];
+    
     const visibleMetrics = [...this.metricDefinitions.speed, ...this.metricDefinitions.distance]
       .filter(metric => {
+        // Filter by conditional (only show if achieved at least once)
         if (metric.conditional && !metric.recent) {
           return false;
         }
         
-        if (this.isMetric) {
-          return !metric.label.includes('mph') && !metric.label.includes('mile');
-        } else {
-          return !metric.label.includes('km/h') && !metric.label.includes('1000m');
+        // Filter by unit system
+        const isMetricUnit = metric.label.includes('km/h') || metric.label.includes('1000m');
+        if (this.isMetric !== isMetricUnit) {
+          return false;
         }
+        
+        // Filter by user selection (if they've made selections)
+        if (currentVisibleMetrics && !currentVisibleMetrics.includes(metric.id)) {
+          return false;
+        }
+        
+        return true;
       });
     
     this.elements.metricsGrid.innerHTML = visibleMetrics.map(metric => {
@@ -741,6 +760,75 @@ class SpeedTracker {
         </div>
       `;
     }).join('');
+  }
+
+  renderMetricSelection() {
+    const unitKey = this.isMetric ? 'kmh' : 'mph';
+    const currentVisibleMetrics = this.visibleMetrics[unitKey];
+    
+    // Get all metrics for current unit
+    const allMetrics = [...this.metricDefinitions.speed, ...this.metricDefinitions.distance]
+      .filter(metric => {
+        const isMetricUnit = metric.label.includes('km/h') || metric.label.includes('1000m');
+        return this.isMetric === isMetricUnit;
+      });
+    
+    this.elements.metricSelection.innerHTML = allMetrics.map(metric => {
+      // If no selection has been made yet, default to showing non-conditional metrics
+      const isChecked = currentVisibleMetrics 
+        ? currentVisibleMetrics.includes(metric.id)
+        : !metric.conditional;
+      
+      return `
+        <div class="metric-checkbox-item">
+          <input 
+            type="checkbox" 
+            id="metric-${metric.id}" 
+            data-metric-id="${metric.id}"
+            ${isChecked ? 'checked' : ''}
+            onchange="tracker.toggleMetricVisibility('${metric.id}')"
+          />
+          <label for="metric-${metric.id}">${metric.label}</label>
+        </div>
+      `;
+    }).join('');
+  }
+
+  toggleMetricVisibility(metricId) {
+    const unitKey = this.isMetric ? 'kmh' : 'mph';
+    
+    // Get all metrics for current unit
+    const allMetricsForUnit = [...this.metricDefinitions.speed, ...this.metricDefinitions.distance]
+      .filter(metric => {
+        const isMetricUnit = metric.label.includes('km/h') || metric.label.includes('1000m');
+        return this.isMetric === isMetricUnit;
+      })
+      .map(m => m.id);
+    
+    // Initialize if not set
+    if (!this.visibleMetrics[unitKey]) {
+      // Start with non-conditional metrics
+      this.visibleMetrics[unitKey] = [...this.metricDefinitions.speed, ...this.metricDefinitions.distance]
+        .filter(m => {
+          const isMetricUnit = m.label.includes('km/h') || m.label.includes('1000m');
+          return this.isMetric === isMetricUnit && !m.conditional;
+        })
+        .map(m => m.id);
+    }
+    
+    // Toggle the metric
+    const index = this.visibleMetrics[unitKey].indexOf(metricId);
+    if (index > -1) {
+      this.visibleMetrics[unitKey].splice(index, 1);
+    } else {
+      this.visibleMetrics[unitKey].push(metricId);
+    }
+    
+    // Save to localStorage
+    localStorage.setItem(`visibleMetrics_${unitKey}`, JSON.stringify(this.visibleMetrics[unitKey]));
+    
+    // Re-render metrics
+    this.renderMetrics();
   }
 
   initChart() {
@@ -881,6 +969,7 @@ class SpeedTracker {
     localStorage.setItem('isMetric', this.isMetric);
     this.elements.metricToggle.classList.toggle('active', this.isMetric);
     this.elements.speedUnit.textContent = this.isMetric ? 'km/h' : 'mph';
+    this.renderMetricSelection(); // Update metric selection for new units
     this.renderMetrics();
     this.updateChart();
   }

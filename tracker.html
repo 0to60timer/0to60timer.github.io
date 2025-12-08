@@ -73,6 +73,12 @@
       gap: 1rem;
     }
 
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
     .logo {
       font-size: 1rem;
       font-weight: 800;
@@ -97,16 +103,43 @@
       50% { opacity: 0.3; }
     }
 
+    .header-stop-btn {
+      background: var(--error-color);
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: none;
+    }
+
+    .header-stop-btn.active {
+      display: block;
+    }
+
+    .header-stop-btn:active {
+      transform: scale(0.95);
+    }
+
     .settings-button {
       background: none;
       border: none;
       color: inherit;
-      font-size: 1.5rem;
       cursor: pointer;
       padding: 0.5rem;
       display: flex;
       align-items: center;
       justify-content: center;
+      width: 36px;
+      height: 36px;
+    }
+
+    .settings-button svg {
+      width: 24px;
+      height: 24px;
+      fill: currentColor;
     }
 
     /* Main Container */
@@ -120,13 +153,50 @@
       -webkit-overflow-scrolling: touch;
     }
 
+    /* Speed and Chart Section - Side by Side */
+    .speed-chart-section {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      padding: 1rem 0;
+      min-height: 220px;
+    }
+
+    /* Chart Section */
+    .chart-section {
+      flex: 1;
+      min-height: 200px;
+      display: flex;
+      align-items: center;
+    }
+
+    .chart-container {
+      width: 100%;
+      height: 200px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      position: relative;
+    }
+
+    body.light-mode .chart-container {
+      background: rgba(0, 0, 0, 0.02);
+      border-color: rgba(0, 0, 0, 0.1);
+    }
+
+    #chart {
+      width: 100%;
+      height: 100%;
+      border-radius: 12px;
+    }
+
     /* Speed Display Section */
     .speed-section {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 1rem 0;
+      flex-shrink: 0;
     }
 
     .speed-sign {
@@ -134,8 +204,8 @@
       color: #000000;
       border: 6px solid #FF0000;
       border-radius: 20px;
-      width: 180px;
-      height: 200px;
+      width: 160px;
+      height: 180px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -146,7 +216,7 @@
     }
 
     .speed-value {
-      font-size: 64px;
+      font-size: 56px;
       line-height: 1;
     }
 
@@ -176,7 +246,7 @@
       display: flex;
       gap: 1rem;
       justify-content: center;
-      padding: 1.5rem 0;
+      padding: 1rem 0;
     }
 
     .control-button {
@@ -192,11 +262,6 @@
 
     .btn-start {
       background: var(--success-color);
-      color: white;
-    }
-
-    .btn-stop {
-      background: var(--error-color);
       color: white;
     }
 
@@ -216,34 +281,6 @@
 
     .hidden {
       display: none !important;
-    }
-
-    /* Chart Section */
-    .chart-section {
-      flex: 1;
-      min-height: 200px;
-      max-height: 300px;
-      margin-bottom: 1rem;
-    }
-
-    .chart-container {
-      width: 100%;
-      height: 100%;
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      position: relative;
-    }
-
-    body.light-mode .chart-container {
-      background: rgba(0, 0, 0, 0.02);
-      border-color: rgba(0, 0, 0, 0.1);
-    }
-
-    #chart {
-      width: 100%;
-      height: 100%;
-      border-radius: 12px;
     }
 
     /* Metrics Grid */
@@ -400,7 +437,16 @@
       transition: background 0.3s;
     }
 
+    body.light-mode .toggle-switch {
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(0, 0, 0, 0.2);
+    }
+
     .toggle-switch.active {
+      background: var(--primary-color);
+    }
+
+    body.light-mode .toggle-switch.active {
       background: var(--primary-color);
     }
 
@@ -413,10 +459,64 @@
       background: white;
       border-radius: 50%;
       transition: transform 0.3s;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    body.light-mode .toggle-knob {
+      background: #1A1A1A;
+    }
+
+    body.light-mode .toggle-switch.active .toggle-knob {
+      background: white;
     }
 
     .toggle-switch.active .toggle-knob {
       transform: translateX(22px);
+    }
+
+    /* Metric Selection */
+    .metric-selection {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .metric-checkbox-item {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    body.light-mode .metric-checkbox-item {
+      background: rgba(0, 0, 0, 0.03);
+    }
+
+    .metric-checkbox-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    body.light-mode .metric-checkbox-item:hover {
+      background: rgba(0, 0, 0, 0.06);
+    }
+
+    .metric-checkbox-item input[type="checkbox"] {
+      margin-right: 0.75rem;
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      accent-color: var(--primary-color);
+    }
+
+    .metric-checkbox-item label {
+      flex: 1;
+      cursor: pointer;
+      font-size: 0.95rem;
     }
 
     .nav-links {
@@ -652,9 +752,25 @@
 
     /* Responsive adjustments */
     @media (max-width: 480px) {
+      .speed-chart-section {
+        flex-direction: column-reverse;
+        min-height: auto;
+        padding: 0.5rem 0;
+      }
+
+      .chart-section {
+        width: 100%;
+        min-height: 150px;
+      }
+
+      .chart-container {
+        height: 150px;
+      }
+
       .speed-sign {
         width: 140px;
         height: 160px;
+        margin-bottom: 0.5rem;
       }
 
       .speed-value {
@@ -664,6 +780,15 @@
       .control-button {
         min-width: 120px;
         padding: 0.875rem 1.5rem;
+      }
+
+      .logo {
+        font-size: 0.85rem;
+      }
+
+      .header-stop-btn {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.85rem;
       }
     }
 
@@ -680,31 +805,40 @@
     <div class="header-left">
       <div class="logo">0to60Timer.com</div>
       <div class="recording-indicator" id="recordingIndicator"></div>
+      <button class="header-stop-btn" id="headerStopBtn">Stop Run</button>
     </div>
-    <button class="settings-button" id="settingsButton">⚙️</button>
+    <div class="header-right">
+      <button class="settings-button" id="settingsButton">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+        </svg>
+      </button>
+    </div>
   </header>
 
   <!-- Main Tracker -->
   <main class="tracker-container">
-    <!-- Speed Display -->
-    <section class="speed-section">
-      <div class="speed-sign" id="speedSign">
-        <div class="speed-value" id="speedValue">0</div>
-        <div class="speed-unit" id="speedUnit">mph</div>
+    <!-- Speed and Chart Section (Side by Side) -->
+    <section class="speed-chart-section">
+      <!-- Chart on Left -->
+      <div class="chart-section">
+        <div class="chart-container">
+          <canvas id="chart"></canvas>
+        </div>
+      </div>
+
+      <!-- Speed Sign on Right -->
+      <div class="speed-section">
+        <div class="speed-sign" id="speedSign">
+          <div class="speed-value" id="speedValue">0</div>
+          <div class="speed-unit" id="speedUnit">mph</div>
+        </div>
       </div>
     </section>
 
     <!-- Controls -->
     <section class="controls">
       <button class="control-button btn-start" id="startBtn">Start Run</button>
-      <button class="control-button btn-stop hidden" id="stopBtn">Stop Run</button>
-    </section>
-
-    <!-- Chart -->
-    <section class="chart-section">
-      <div class="chart-container">
-        <canvas id="chart"></canvas>
-      </div>
     </section>
 
     <!-- Metrics -->
@@ -736,6 +870,13 @@
           <div class="toggle-switch" id="metricToggle">
             <div class="toggle-knob"></div>
           </div>
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <h3>Visible Metrics</h3>
+        <div class="metric-selection" id="metricSelection">
+          <!-- Populated by JavaScript -->
         </div>
       </div>
 
