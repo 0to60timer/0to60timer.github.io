@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sensor Setup | 0to60 Tracker</title>
+  <title>Sensor Setup | 0to60Timer.com</title>
   <meta name="description" content="Grant sensor permissions to start tracking your 0-60 times">
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -60,7 +60,7 @@
     }
 
     .logo {
-      font-size: 1.5rem;
+      font-size: 1.3rem;
       font-weight: 800;
       color: var(--primary-color);
       text-decoration: none;
@@ -275,6 +275,7 @@
       transition: all 0.3s;
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 0.75rem;
     }
 
@@ -287,6 +288,79 @@
     .start-button:disabled {
       opacity: 0.5;
       cursor: not-allowed;
+    }
+
+    /* Success State */
+    .success-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.95);
+      backdrop-filter: blur(10px);
+      z-index: 3000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .success-overlay.show {
+      display: flex;
+    }
+
+    .success-content {
+      background: var(--success-color);
+      border-radius: 20px;
+      padding: 3rem 2rem;
+      text-align: center;
+      max-width: 350px;
+      color: white;
+    }
+
+    .success-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      animation: scaleIn 0.5s ease-out;
+    }
+
+    @keyframes scaleIn {
+      from {
+        transform: scale(0);
+        opacity: 0;
+      }
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .success-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+    }
+
+    .success-message {
+      font-size: 1rem;
+      opacity: 0.9;
+      margin-bottom: 1.5rem;
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     /* Instructions Tabs */
@@ -406,7 +480,7 @@
   <header class="header">
     <div class="header-container">
       <a href="index.html" class="logo">
-        0to60
+        0to60Timer.com
         <span class="beta-badge">Beta</span>
       </a>
     </div>
@@ -562,6 +636,16 @@
       </div>
     </div>
   </main>
+
+  <!-- Success Overlay -->
+  <div class="success-overlay" id="successOverlay">
+    <div class="success-content">
+      <div class="success-icon">✓</div>
+      <div class="success-title">Sensors Working!</div>
+      <div class="success-message">Redirecting to tracker...</div>
+      <div class="loading-spinner"></div>
+    </div>
+  </div>
 
   <script>
     // State management
@@ -800,14 +884,33 @@
       const button = document.getElementById('startButton');
       if (sensors.motion.granted && sensors.gps.granted) {
         button.disabled = false;
+        
+        // Check if both sensors are also ACTIVE (working)
+        if (sensors.motion.active && sensors.gps.active) {
+          // Show success overlay and auto-redirect
+          showSuccessAndRedirect();
+        }
       } else {
         button.disabled = true;
       }
     }
 
-    // Start Button Click
+    // Show success overlay and redirect
+    function showSuccessAndRedirect() {
+      const overlay = document.getElementById('successOverlay');
+      overlay.classList.add('show');
+      
+      // Redirect after 1 second
+      setTimeout(() => {
+        window.location.href = 'tracker.html';
+      }, 1000);
+    }
+
+    // Start Button Click (manual navigation if user clicks before auto-redirect)
     document.getElementById('startButton').addEventListener('click', () => {
-      window.location.href = 'tracker.html';
+      if (sensors.motion.granted && sensors.gps.granted) {
+        showSuccessAndRedirect();
+      }
     });
 
     // Initialize

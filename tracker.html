@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tracker | 0to60</title>
+  <title>Tracker | 0to60Timer.com</title>
   <meta name="theme-color" content="#0A0A0A">
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -74,7 +74,7 @@
     }
 
     .logo {
-      font-size: 1.2rem;
+      font-size: 1rem;
       font-weight: 800;
       color: var(--primary-color);
     }
@@ -678,7 +678,7 @@
   <!-- Header -->
   <header class="header">
     <div class="header-left">
-      <div class="logo">0to60</div>
+      <div class="logo">0to60Timer.com</div>
       <div class="recording-indicator" id="recordingIndicator"></div>
     </div>
     <button class="settings-button" id="settingsButton">⚙️</button>
@@ -800,37 +800,24 @@
 
   <script>
     // Check for sensor permissions on load - redirect if missing
+    // Only redirect if we're CERTAIN permissions are denied, not if we can't check
     (async function checkSensorPermissions() {
-      let hasMotion = false;
-      let hasGPS = false;
-
-      // Check Device Motion
-      if ('DeviceMotionEvent' in window) {
-        if (typeof DeviceMotionEvent.requestPermission === 'function') {
-          // iOS - can't check without requesting
-          hasMotion = false;
-        } else {
-          // Android - assume available
-          hasMotion = true;
-        }
-      }
-
-      // Check GPS
-      if ('geolocation' in navigator) {
-        try {
-          await new Promise((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 500 });
-          });
-          hasGPS = true;
-        } catch {
-          hasGPS = false;
-        }
-      }
-
-      // Redirect if missing sensors
-      if (!hasMotion || !hasGPS) {
+      // For the tracker, we'll be more lenient and let the app try to initialize
+      // If sensors truly don't work, the tracker will handle it gracefully
+      
+      // We only redirect if:
+      // 1. DeviceMotionEvent doesn't exist at all
+      // 2. Geolocation doesn't exist at all
+      
+      const hasDeviceMotion = 'DeviceMotionEvent' in window;
+      const hasGeolocation = 'geolocation' in navigator;
+      
+      // Only redirect if fundamental APIs are missing (desktop/unsupported browser)
+      if (!hasDeviceMotion || !hasGeolocation) {
         window.location.href = 'access.html?redirect=tracker';
       }
+      
+      // Otherwise, let the tracker app handle permission requests
     })();
   </script>
 
