@@ -29,6 +29,7 @@ class SpeedTracker {
     this.noiseThreshold = 2.0;
     this.isMoving = false;
     this.stationaryTime = 0;
+    this.stationaryDuration = 0; // Track stationary time in seconds
     this.lastValidAcceleration = 0;
     this.deviceMotionActive = false; // Track if device motion listener is active
     
@@ -369,24 +370,50 @@ class SpeedTracker {
   }
 
   handleDeviceMotion(event) {
-    if (event.accelerationIncludingGravity) {
+    // PREFER Linear Acceleration (hardware gravity removal) if available
+    // This is much better at ignoring tilt than manual gravity subtraction
+    if (event.acceleration && event.acceleration.x !== null) {
+      this.processSensorData({
+        x: event.acceleration.x,
+        y: event.acceleration.y,
+        z: event.acceleration.z,
+        timestamp: performance.now(),
+        isLinear: true // Flag to skip manual gravity subtraction
+      });
+    } else if (event.accelerationIncludingGravity) {
+      // Fallback for devices without hardware linear acceleration
       this.processSensorData({
         x: event.accelerationIncludingGravity.x,
         y: event.accelerationIncludingGravity.y,
-        z: event.accelerationIncludingGravity.z - 9.81,
-        timestamp: performance.now()
+        z: event.accelerationIncludingGravity.z, // passed raw, subtraction happens in process
+        timestamp: performance.now(),
+        isLinear: false
       });
     }
   }
 
   processSensorData(data) {
-    // Apply calibration
-    const calibratedData = {
-      x: data.x - this.calibrationOffset.x,
-      y: data.y - this.calibrationOffset.y,
-      z: data.z - this.calibrationOffset.z,
-      timestamp: data.timestamp
-    };
+    let calibratedData;
+    
+    if (data.isLinear) {
+      // Linear acceleration: just apply calibration offset (for sensor bias)
+      // No need to subtract 9.81
+      calibratedData = {
+        x: data.x - this.calibrationOffset.x,
+        y: data.y - this.calibrationOffset.y,
+        z: data.z - this.calibrationOffset.z,
+        timestamp: data.timestamp
+      };
+    } else {
+      // Gravity included: subtract calibrated gravity
+      // Note: this is prone to tilt errors, but best we can do without linear accel
+      calibratedData = {
+        x: data.x - this.calibrationOffset.x,
+        y: data.y - this.calibrationOffset.y,
+        z: (data.z - 9.81) - this.calibrationOffset.z,
+        timestamp: data.timestamp
+      };
+    }
     
     // Apply filtering
     const processedData = this.applyFiltering(calibratedData);
@@ -559,13 +586,42 @@ class SpeedTracker {
     // GPS fusion
     const gpsAge = (sensorData.timestamp - this.gpsLastUpdate) / 1000;
     const gpsReliable = this.gpsAvailable && gpsAge < 2.0;
+
+    // Update stationary duration (REAL TIME TRACKING)
+    if (!sensorData.isMoving && acceleration < this.motionThreshold) {
+      this.stationaryDuration += dt;
+    } else {
+      this.stationaryDuration = 0;
+    }
+
+    // Rule: If stationary for > 3 seconds, do not increase speed (Force 0 and Recalibrate)
+    if (this.stationaryDuration > 3.0) {
+      if (this.velocity > 0) {
+        console.log('Stationary > 3s detected. Forcing zero and recalibrating.');
+      }
+      this.velocity = 0;
+      this.velocityBuffer = [];
+      
+      // Fix "rate of increase" by removing bias
+      // Only recalibrate if we haven't done so recently (e.g., every 3s) to avoid jitter
+      // But since we are stationary, continuous recalibration is fine as it converges.
+      this.recalibrateBias();
+      
+      this.lastTimestamp = timeElapsed;
+      
+      // Update display to 0 immediately
+      this.elements.speedValue.textContent = '0';
+      this.elements.speedSign.classList.remove('moving');
+      return;
+    }
     
     // CRITICAL: Zero velocity detection - multiple checks
     // Check 1: GPS says we're stopped
     if (gpsReliable && this.gpsSpeed < 0.3 && this.consecutiveZeroGPS >= 3) {
       this.velocity = 0;
       this.velocityBuffer = [];
-      console.log('Zero velocity: GPS confirms stopped');
+      // Also trust GPS over accel drift
+      this.stationaryDuration += dt; // Treat as stationary
     }
     
     // Check 2: No significant acceleration detected
@@ -576,7 +632,9 @@ class SpeedTracker {
         this.velocity *= 0.6; // Aggressive decay
       }
       
-      if (Math.abs(this.velocity) < 0.5) {
+      // Tilt Rejection: If velocity is small and we aren't "moving" (high accel), kill it.
+      // 0.89 m/s is approx 2 mph. If we are under this and not accelerating, assume noise/tilt.
+      if (Math.abs(this.velocity) < 0.89) {
         this.velocity = 0;
       }
     }
@@ -588,7 +646,8 @@ class SpeedTracker {
       
       // If accelerometer distance is more than 20% off from GPS distance
       if (distanceError > 0.2) {
-        console.warn(`Distance drift detected: Accel=${this.distance.toFixed(1)}m, GPS=${this.gpsDistance.toFixed(1)}m, Error=${(distanceError*100).toFixed(1)}%`);
+        // Only warn, let the robust logic handle it
+        // console.warn(`Distance drift detected: Accel=${this.distance.toFixed(1)}m, GPS=${this.gpsDistance.toFixed(1)}m`);
         
         // Correct the accumulated distance
         const correctionFactor = this.gpsDistance / Math.max(this.distance, 0.1);
@@ -597,8 +656,6 @@ class SpeedTracker {
         // Also correct velocity proportionally
         this.velocity *= correctionFactor;
         this.velocityBuffer = []; // Clear buffer after correction
-        
-        console.log(`Applied correction factor: ${correctionFactor.toFixed(3)}`);
       }
       
       this.lastDriftCheckTime = timeElapsed;
@@ -630,7 +687,6 @@ class SpeedTracker {
     
     // Additional drift correction - if GPS shows low speed but velocity is high
     if (gpsReliable && this.gpsSpeed < 1.0 && Math.abs(this.velocity) > 2.0) {
-      console.warn(`Drift correction: GPS=${this.gpsSpeed.toFixed(2)}m/s, Velocity=${this.velocity.toFixed(2)}m/s`);
       this.velocity = this.gpsSpeed; // Trust GPS over accelerometer
       this.velocityBuffer = [];
     }
@@ -638,18 +694,10 @@ class SpeedTracker {
     // Prevent unrealistic velocity (sanity check - max ~223 mph / 360 kph)
     const maxRealisticSpeed = 100; // m/s
     if (Math.abs(this.velocity) > maxRealisticSpeed) {
-      console.warn('Unrealistic velocity detected, resetting');
       this.velocity = 0;
     }
     
-    // Final sanity check: If stationary for long time with GPS confirmation, force zero
-    if (this.stationaryTime > 100 && gpsReliable && this.gpsSpeed < 0.5) {
-      if (this.velocity > 0.5) {
-        console.warn(`Forcing zero velocity: stationary for ${this.stationaryTime} frames, GPS speed=${this.gpsSpeed.toFixed(2)}m/s`);
-        this.velocity = 0;
-        this.velocityBuffer = [];
-      }
-    }
+    // Final sanity check is now handled by the 3s rule
     
     this.velocity = Math.max(0, this.velocity);
     
@@ -710,6 +758,40 @@ class SpeedTracker {
     
     this.lastTimestamp = timeElapsed;
     this.renderMetrics();
+  }
+
+  recalibrateBias() {
+    // Need enough data points
+    if (this.accelerationBuffer.length < 5) return;
+    
+    // Calculate mean of recent raw values
+    // Using the last 20 frames (or however many are in buffer)
+    let sumX = 0, sumY = 0, sumZ = 0;
+    let count = 0;
+    
+    for (const data of this.accelerationBuffer) {
+      if (data.raw) {
+        sumX += data.raw.x;
+        sumY += data.raw.y;
+        sumZ += data.raw.z;
+        count++;
+      }
+    }
+    
+    if (count === 0) return;
+    
+    // Soft update: adjust offset by the residual error
+    // data.raw contains the 'calibrated' values (residuals), so we add them to the offset
+    // to zero them out.
+    const avgResidualX = sumX / count;
+    const avgResidualY = sumY / count;
+    const avgResidualZ = sumZ / count;
+    
+    const blendFactor = 0.1; // Adjust 10% of the error per frame
+    
+    this.calibrationOffset.x += avgResidualX * blendFactor;
+    this.calibrationOffset.y += avgResidualY * blendFactor;
+    this.calibrationOffset.z += avgResidualZ * blendFactor;
   }
 
   detectLaunch(acceleration, isMoving, timeElapsed) {
