@@ -180,7 +180,7 @@ class SpeedTracker {
     }
   }
 
-  initSensors() {
+  async initSensors() {
     // Device Motion
     if (window.DeviceMotionEvent) {
       if (typeof DeviceMotionEvent.requestPermission === 'function') {
@@ -191,39 +191,83 @@ class SpeedTracker {
       }
     }
     
-    // GPS - Don't request permission here, just check if it's available
-    // Actual GPS watching will start when the run starts
-    this.gpsAvailable = 'geolocation' in navigator;
+    // GPS - Check if available
+    if ('geolocation' in navigator) {
+      this.gpsAvailable = true;
+      
+      // Try to check permission status without prompting (Permissions API)
+      if ('permissions' in navigator) {
+        try {
+          const result = await navigator.permissions.query({ name: 'geolocation' });
+          console.log('Geolocation permission status:', result.state);
+          
+          if (result.state === 'granted') {
+            // Permission already granted, we can start watching immediately when run starts
+            console.log('GPS permission already granted, ready to track');
+          } else if (result.state === 'denied') {
+            console.warn('GPS permission denied, will redirect to access page if needed');
+          }
+          // 'prompt' state means we'll need to request on first use
+        } catch (error) {
+          // Permissions API not fully supported, will handle on first use
+          console.log('Permissions API not available, will check on first GPS use');
+        }
+      }
+    }
   }
 
   async startRun() {
-    // Request iOS permissions if needed and not already done
-    if (typeof DeviceMotionEvent.requestPermission === 'function' && !this.isRunning) {
-      try {
-        const permission = await DeviceMotionEvent.requestPermission();
-        if (permission !== 'granted') {
-          alert('Motion permission required');
-          return;
-        }
-        window.addEventListener('devicemotion', (event) => this.handleDeviceMotion(event));
-      } catch (error) {
-        alert('Unable to access sensors');
-        return;
-      }
-    }
-    
     // Don't start again if already running
     if (this.isRunning) {
       return;
     }
     
-    // Start GPS watching if available
+    // Start GPS watching FIRST (before any async operations)
+    // This ensures it's called synchronously with the user gesture
     if (this.gpsAvailable && !this.gpsWatchId) {
-      this.gpsWatchId = navigator.geolocation.watchPosition(
-        (position) => this.handleGPSUpdate(position),
-        (error) => console.warn('GPS error:', error),
-        { enableHighAccuracy: true, maximumAge: 1000, timeout: 5000 }
-      );
+      try {
+        // CRITICAL: Call this before any await to maintain user gesture context
+        this.gpsWatchId = navigator.geolocation.watchPosition(
+          (position) => this.handleGPSUpdate(position),
+          (error) => {
+            console.warn('GPS error:', error);
+            // If permission denied, redirect to access page
+            if (error.code === error.PERMISSION_DENIED) {
+              console.error('GPS permission denied, redirecting to access page');
+              window.location.href = 'access.html?redirect=tracker';
+            }
+          },
+          { enableHighAccuracy: true, maximumAge: 1000, timeout: 5000 }
+        );
+        console.log('GPS watching started');
+      } catch (error) {
+        console.error('Failed to start GPS watching:', error);
+      }
+    }
+    
+    // Request iOS permissions if needed and not already done
+    if (typeof DeviceMotionEvent.requestPermission === 'function') {
+      try {
+        const permission = await DeviceMotionEvent.requestPermission();
+        if (permission !== 'granted') {
+          alert('Motion permission required');
+          // Stop GPS if motion permission denied
+          if (this.gpsWatchId) {
+            navigator.geolocation.clearWatch(this.gpsWatchId);
+            this.gpsWatchId = null;
+          }
+          return;
+        }
+        window.addEventListener('devicemotion', (event) => this.handleDeviceMotion(event));
+      } catch (error) {
+        alert('Unable to access sensors');
+        // Stop GPS if motion permission failed
+        if (this.gpsWatchId) {
+          navigator.geolocation.clearWatch(this.gpsWatchId);
+          this.gpsWatchId = null;
+        }
+        return;
+      }
     }
     
     // Start calibration
