@@ -653,28 +653,32 @@
       <div class="success-icon">✓</div>
       <div class="success-title">Sensors Working!</div>
       <div class="success-message">Ready to start tracking your speed?</div>
-      <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center;">
+      <div style="margin-top: 2rem; display: flex; flex-direction: column; gap: 1rem; align-items: center;">
         <button id="continueToTracker" style="
           background: white;
           color: var(--success-color);
           border: none;
-          padding: 1rem 2rem;
+          padding: 1.25rem 3rem;
           border-radius: 12px;
-          font-size: 1rem;
-          font-weight: 700;
+          font-size: 1.125rem;
+          font-weight: 800;
           cursor: pointer;
           transition: transform 0.2s;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+          width: 100%;
+          max-width: 280px;
         ">Continue to Tracker</button>
         <button id="stayOnAccess" style="
           background: transparent;
           color: white;
-          border: 2px solid white;
-          padding: 1rem 2rem;
+          border: 2px solid rgba(255, 255, 255, 0.5);
+          padding: 0.75rem 2rem;
           border-radius: 12px;
-          font-size: 1rem;
-          font-weight: 700;
+          font-size: 0.9rem;
+          font-weight: 600;
           cursor: pointer;
-          transition: transform 0.2s;
+          transition: all 0.2s;
+          opacity: 0.8;
         ">Stay Here</button>
       </div>
     </div>
@@ -928,25 +932,32 @@
       }
     }
 
+    // Track if popup has been shown
+    let popupShown = false;
+
     // Show success overlay with confirmation
     function showSuccessAndRedirect() {
+      // Only show popup once
+      if (popupShown) return;
+      popupShown = true;
+      
       const overlay = document.getElementById('successOverlay');
       overlay.classList.add('show');
       
-      // Set up button handlers
+      // Set up button handlers (only once)
       document.getElementById('continueToTracker').addEventListener('click', () => {
         window.location.href = 'tracker.html';
-      });
+      }, { once: true });
       
       document.getElementById('stayOnAccess').addEventListener('click', () => {
         overlay.classList.remove('show');
-      });
+      }, { once: true });
     }
 
-    // Start Button Click (manual navigation if user clicks before auto-redirect)
+    // Start Button Click - go directly to tracker without popup
     document.getElementById('startButton').addEventListener('click', () => {
       if (sensors.motion.granted && sensors.gps.granted) {
-        showSuccessAndRedirect();
+        window.location.href = 'tracker.html';
       }
     });
 

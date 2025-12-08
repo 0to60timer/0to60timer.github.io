@@ -38,6 +38,9 @@ class SpeedTracker {
     this.gpsWatchId = null;
     this.lastGpsPosition = null;
     this.velocityConfidence = 0;
+    this.gpsDistance = 0; // Track GPS-measured distance
+    this.lastDriftCheckTime = 0; // For periodic drift correction
+    this.consecutiveZeroGPS = 0; // Count how many times GPS shows zero speed
     
     // Launch detection
     this.launchDetected = false;
@@ -159,24 +162,21 @@ class SpeedTracker {
   }
 
   async autoStartRun() {
-    // Request permissions and start automatically
+    // Check sensor availability without requesting permissions
+    // Don't actually start the run - just set up passive listeners
     try {
-      // Request device motion permission if needed (iOS)
+      // For iOS, we can't check permission status without requesting it
+      // So we'll just wait for the user to click Start Run
       if ('DeviceMotionEvent' in window && typeof DeviceMotionEvent.requestPermission === 'function') {
-        const permission = await DeviceMotionEvent.requestPermission();
-        if (permission !== 'granted') {
-          console.log('Motion permission not granted, waiting for manual start');
-          return;
-        }
-        window.addEventListener('devicemotion', (event) => this.handleDeviceMotion(event));
+        console.log('iOS device detected, waiting for user to start run');
+        return;
       }
       
-      // Start the run
-      this.startRun();
+      // For Android, device motion listener is already set up in initSensors()
+      // GPS will only start when user clicks Start Run
+      console.log('Sensors ready, waiting for user to start run');
     } catch (error) {
-      // If auto-start fails (e.g., user needs to interact first on iOS), 
-      // just wait for manual start button click
-      console.log('Auto-start not possible, waiting for user interaction');
+      console.log('Sensor check failed:', error);
     }
   }
 
@@ -236,6 +236,9 @@ class SpeedTracker {
     this.runStartTime = performance.now();
     this.velocity = 0;
     this.distance = 0;
+    this.gpsDistance = 0; // Reset GPS distance tracking
+    this.lastDriftCheckTime = 0; // Reset drift check timer
+    this.consecutiveZeroGPS = 0; // Reset zero GPS counter
     this.chartData = [];
     this.lastTimestamp = 0;
     this.accelerationBuffer = [];
@@ -428,6 +431,13 @@ class SpeedTracker {
     if (position.coords.speed !== null && position.coords.speed >= 0) {
       this.gpsSpeed = position.coords.speed; // m/s
       this.gpsAvailable = true;
+      
+      // Track consecutive zero speed readings
+      if (this.gpsSpeed < 0.3) {
+        this.consecutiveZeroGPS++;
+      } else {
+        this.consecutiveZeroGPS = 0;
+      }
     }
     
     if (this.lastGpsPosition && this.isRunning) {
@@ -437,6 +447,11 @@ class SpeedTracker {
         position.coords.latitude,
         position.coords.longitude
       );
+      
+      // Accumulate GPS distance
+      if (distance > 0 && distance < 100) { // Sanity check: ignore jumps > 100m
+        this.gpsDistance += distance;
+      }
       
       const timeDiff = (now - this.lastGpsPosition.timestamp) / 1000;
       if (timeDiff > 0 && distance > 0) {
@@ -503,13 +518,59 @@ class SpeedTracker {
     const gpsAge = (sensorData.timestamp - this.gpsLastUpdate) / 1000;
     const gpsReliable = this.gpsAvailable && gpsAge < 2.0;
     
+    // CRITICAL: Zero velocity detection - multiple checks
+    // Check 1: GPS says we're stopped
+    if (gpsReliable && this.gpsSpeed < 0.3 && this.consecutiveZeroGPS >= 3) {
+      this.velocity = 0;
+      this.velocityBuffer = [];
+      console.log('Zero velocity: GPS confirms stopped');
+    }
+    
+    // Check 2: No significant acceleration detected
+    if (!sensorData.isMoving && this.velocity < 2.0) {
+      if (gpsReliable && this.gpsSpeed < 1.0) {
+        this.velocity = 0; // Hard zero when GPS confirms stopped
+      } else {
+        this.velocity *= 0.6; // Aggressive decay
+      }
+      
+      if (Math.abs(this.velocity) < 0.5) {
+        this.velocity = 0;
+      }
+    }
+    
+    // Check 3: Periodic distance validation (every 2 seconds)
+    if (timeElapsed - this.lastDriftCheckTime > 2.0 && this.gpsDistance > 0) {
+      const distanceDiff = Math.abs(this.distance - this.gpsDistance);
+      const distanceError = this.distance > 0 ? distanceDiff / this.distance : 0;
+      
+      // If accelerometer distance is more than 20% off from GPS distance
+      if (distanceError > 0.2) {
+        console.warn(`Distance drift detected: Accel=${this.distance.toFixed(1)}m, GPS=${this.gpsDistance.toFixed(1)}m, Error=${(distanceError*100).toFixed(1)}%`);
+        
+        // Correct the accumulated distance
+        const correctionFactor = this.gpsDistance / Math.max(this.distance, 0.1);
+        this.distance *= correctionFactor;
+        
+        // Also correct velocity proportionally
+        this.velocity *= correctionFactor;
+        this.velocityBuffer = []; // Clear buffer after correction
+        
+        console.log(`Applied correction factor: ${correctionFactor.toFixed(3)}`);
+      }
+      
+      this.lastDriftCheckTime = timeElapsed;
+    }
+    
     // Update velocity
     if (sensorData.isMoving && acceleration > this.motionThreshold) {
       const velocityChange = acceleration * dt;
       this.velocity += velocityChange;
       
+      // Stronger GPS fusion when GPS is reliable
       if (gpsReliable && this.gpsSpeed >= 0) {
-        const gpsWeight = Math.min(0.3, this.velocityConfidence * 0.5);
+        // Increase GPS weight based on confidence
+        const gpsWeight = Math.min(0.5, this.velocityConfidence * 0.7);
         this.velocity = (1 - gpsWeight) * this.velocity + gpsWeight * this.gpsSpeed;
       }
       
@@ -523,21 +584,13 @@ class SpeedTracker {
         const medianIndex = Math.floor(sortedVelocities.length / 2);
         this.velocity = sortedVelocities[medianIndex];
       }
-    } else if (!sensorData.isMoving) {
-      if (gpsReliable && this.gpsSpeed < 1.0) {
-        this.velocity = 0; // Hard zero when GPS confirms stopped
-      } else {
-        this.velocity *= 0.7; // Faster decay
-      }
-      
-      if (Math.abs(this.velocity) < 0.3) {
-        this.velocity = 0;
-      }
     }
     
-    // Enhanced drift correction
-    if (gpsReliable && this.gpsSpeed < 0.5 && Math.abs(this.velocity) > 1.0) {
-      this.velocity = 0; // Hard correction for drift
+    // Additional drift correction - if GPS shows low speed but velocity is high
+    if (gpsReliable && this.gpsSpeed < 1.0 && Math.abs(this.velocity) > 2.0) {
+      console.warn(`Drift correction: GPS=${this.gpsSpeed.toFixed(2)}m/s, Velocity=${this.velocity.toFixed(2)}m/s`);
+      this.velocity = this.gpsSpeed; // Trust GPS over accelerometer
+      this.velocityBuffer = [];
     }
     
     // Prevent unrealistic velocity (sanity check - max ~223 mph / 360 kph)
@@ -545,6 +598,15 @@ class SpeedTracker {
     if (Math.abs(this.velocity) > maxRealisticSpeed) {
       console.warn('Unrealistic velocity detected, resetting');
       this.velocity = 0;
+    }
+    
+    // Final sanity check: If stationary for long time with GPS confirmation, force zero
+    if (this.stationaryTime > 100 && gpsReliable && this.gpsSpeed < 0.5) {
+      if (this.velocity > 0.5) {
+        console.warn(`Forcing zero velocity: stationary for ${this.stationaryTime} frames, GPS speed=${this.gpsSpeed.toFixed(2)}m/s`);
+        this.velocity = 0;
+        this.velocityBuffer = [];
+      }
     }
     
     this.velocity = Math.max(0, this.velocity);
