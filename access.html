@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sensor Setup | 0to60 Tracker</title>
+  <meta name="description" content="Grant sensor permissions to start tracking your 0-60 times">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --primary-color: #6C8EAD;
+      --primary-dark: #5A7694;
+      --primary-light: #8AA7C3;
+      --bg-dark: #0A0A0A;
+      --bg-light: #FFFFFF;
+      --text-dark: #1A1A1A;
+      --text-light: #FFFFFF;
+      --text-gray: #888888;
+      --border-color: #E0E0E0;
+      --success-color: #4CAF50;
+      --error-color: #F44336;
+      --warning-color: #FF9800;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text-dark);
+      background: var(--bg-light);
+    }
+
+    /* Header */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .header-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--primary-color);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .beta-badge {
+      background: var(--primary-color);
+      color: white;
+      font-size: 0.65rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    /* Main Content */
+    .main-content {
+      margin-top: 80px;
+      min-height: calc(100vh - 80px);
+      padding: 3rem 2rem;
+      background: linear-gradient(135deg, #FFFFFF 0%, #F5F8FA 100%);
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .page-title {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .page-title h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+      color: var(--text-dark);
+    }
+
+    .page-title p {
+      font-size: 1.1rem;
+      color: var(--text-gray);
+    }
+
+    /* Redirect Warning */
+    .redirect-warning {
+      background: #FFF3CD;
+      border: 2px solid #FFE69C;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      display: none;
+    }
+
+    .redirect-warning.show {
+      display: block;
+    }
+
+    .redirect-warning h3 {
+      color: #856404;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .redirect-warning p {
+      color: #856404;
+      margin: 0;
+    }
+
+    /* Sensor Status Cards */
+    .sensor-status-section {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      margin-bottom: 2rem;
+    }
+
+    .sensor-status-section h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      color: var(--text-dark);
+    }
+
+    .sensors-grid {
+      display: grid;
+      gap: 1.5rem;
+    }
+
+    .sensor-card {
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.3s;
+    }
+
+    .sensor-card.granted {
+      border-color: var(--success-color);
+      background: rgba(76, 175, 80, 0.05);
+    }
+
+    .sensor-card.denied {
+      border-color: var(--error-color);
+      background: rgba(244, 67, 54, 0.05);
+    }
+
+    .sensor-info {
+      flex: 1;
+    }
+
+    .sensor-info h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text-dark);
+    }
+
+    .sensor-info p {
+      font-size: 0.9rem;
+      color: var(--text-gray);
+      margin: 0;
+    }
+
+    .sensor-status {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .status-indicator {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      background: var(--border-color);
+    }
+
+    .sensor-card.granted .status-indicator {
+      background: var(--success-color);
+      color: white;
+    }
+
+    .sensor-card.denied .status-indicator {
+      background: var(--error-color);
+      color: white;
+    }
+
+    .request-button {
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .request-button:hover {
+      background: var(--primary-dark);
+    }
+
+    .request-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Test Sensor Status */
+    .test-status {
+      font-size: 0.85rem;
+      color: var(--text-gray);
+      margin-top: 0.5rem;
+      font-style: italic;
+    }
+
+    .test-status.active {
+      color: var(--success-color);
+    }
+
+    .test-status.inactive {
+      color: var(--error-color);
+    }
+
+    /* Start Button */
+    .start-section {
+      text-align: center;
+      margin: 3rem 0;
+    }
+
+    .start-button {
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 1.25rem 3rem;
+      border-radius: 12px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .start-button:hover:not(:disabled) {
+      background: var(--primary-dark);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(108, 142, 173, 0.4);
+    }
+
+    .start-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Instructions Tabs */
+    .instructions-section {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .instructions-section h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      color: var(--text-dark);
+      text-align: center;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    .tab {
+      padding: 1rem 2rem;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-gray);
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: -2px;
+    }
+
+    .tab.active {
+      color: var(--primary-color);
+      border-bottom-color: var(--primary-color);
+    }
+
+    .tab:hover {
+      color: var(--primary-color);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .instruction-step {
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+      background: #F9F9F9;
+      border-radius: 8px;
+    }
+
+    .instruction-step h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--primary-color);
+    }
+
+    .instruction-step p {
+      margin: 0;
+      color: var(--text-dark);
+      line-height: 1.6;
+    }
+
+    .instruction-step ol {
+      margin: 0.5rem 0 0 1.5rem;
+      color: var(--text-dark);
+    }
+
+    .instruction-step li {
+      margin-bottom: 0.5rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .page-title h1 {
+        font-size: 2rem;
+      }
+
+      .sensor-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+
+      .sensor-status {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .tabs {
+        flex-wrap: wrap;
+      }
+
+      .tab {
+        flex: 1;
+        min-width: 120px;
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-container">
+      <a href="index.html" class="logo">
+        0to60
+        <span class="beta-badge">Beta</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container">
+      <div class="page-title">
+        <h1>Sensor Setup</h1>
+        <p>Grant permissions to track your speed using your phone's sensors</p>
+      </div>
+
+      <!-- Redirect Warning -->
+      <div class="redirect-warning" id="redirectWarning">
+        <h3>⚠️ Missing Permissions</h3>
+        <p>You were redirected here because the tracker needs sensor access. Please grant the required permissions below.</p>
+      </div>
+
+      <!-- Sensor Status Section -->
+      <div class="sensor-status-section">
+        <h2>Required Sensors</h2>
+        <div class="sensors-grid">
+          <!-- Device Motion Sensor -->
+          <div class="sensor-card" id="motionCard">
+            <div class="sensor-info">
+              <h3>Device Motion (Accelerometer)</h3>
+              <p>Measures acceleration and movement for accurate speed tracking</p>
+              <div class="test-status" id="motionTest">Testing sensor...</div>
+            </div>
+            <div class="sensor-status">
+              <div class="status-indicator" id="motionIndicator">⏳</div>
+              <button class="request-button" id="motionButton">Request Access</button>
+            </div>
+          </div>
+
+          <!-- GPS/Location Sensor -->
+          <div class="sensor-card" id="gpsCard">
+            <div class="sensor-info">
+              <h3>GPS (Location)</h3>
+              <p>Provides location data for enhanced accuracy and validation</p>
+              <div class="test-status" id="gpsTest">Testing sensor...</div>
+            </div>
+            <div class="sensor-status">
+              <div class="status-indicator" id="gpsIndicator">⏳</div>
+              <button class="request-button" id="gpsButton">Request Access</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Start Tracking Button -->
+      <div class="start-section">
+        <button class="start-button" id="startButton" disabled>
+          <span>Go to Tracker</span>
+          <span>→</span>
+        </button>
+        <p style="margin-top: 1rem; color: var(--text-gray);">
+          Both sensors must be granted for accurate tracking
+        </p>
+      </div>
+
+      <!-- Instructions Section -->
+      <div class="instructions-section">
+        <h2>How to Enable Sensors on Your Device</h2>
+        
+        <div class="tabs">
+          <button class="tab active" data-tab="ios">iPhone/iPad</button>
+          <button class="tab" data-tab="android">Android</button>
+          <button class="tab" data-tab="desktop">Desktop</button>
+        </div>
+
+        <!-- iOS Instructions -->
+        <div class="tab-content active" id="ios">
+          <div class="instruction-step">
+            <h4>📱 Device Motion & Fitness</h4>
+            <ol>
+              <li>Open the <strong>Settings</strong> app on your iPhone</li>
+              <li>Scroll down and tap <strong>Privacy & Security</strong></li>
+              <li>Tap <strong>Motion & Fitness</strong></li>
+              <li>Turn on <strong>Fitness Tracking</strong></li>
+              <li>Scroll down and find <strong>Safari</strong> (or your browser)</li>
+              <li>Turn on the toggle next to your browser</li>
+              <li>Return to this page and click "Request Access" above</li>
+            </ol>
+          </div>
+
+          <div class="instruction-step">
+            <h4>📍 Location Services</h4>
+            <ol>
+              <li>Open the <strong>Settings</strong> app</li>
+              <li>Tap <strong>Privacy & Security</strong></li>
+              <li>Tap <strong>Location Services</strong></li>
+              <li>Turn on <strong>Location Services</strong> at the top</li>
+              <li>Scroll down and find <strong>Safari</strong> (or your browser)</li>
+              <li>Tap on your browser and select <strong>While Using App</strong></li>
+              <li>Return to this page and click "Request Access" above</li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- Android Instructions -->
+        <div class="tab-content" id="android">
+          <div class="instruction-step">
+            <h4>📱 Motion Sensors</h4>
+            <ol>
+              <li>Open <strong>Chrome</strong> (or your browser)</li>
+              <li>Tap the <strong>three dots</strong> menu in the top-right</li>
+              <li>Tap <strong>Settings</strong></li>
+              <li>Tap <strong>Site settings</strong></li>
+              <li>Tap <strong>Motion sensors</strong></li>
+              <li>Turn on <strong>Motion sensors</strong></li>
+              <li>Return to this page and click "Request Access" above</li>
+            </ol>
+            <p style="margin-top: 1rem;"><strong>Alternative:</strong> When prompted by this website, tap <strong>Allow</strong> for motion access.</p>
+          </div>
+
+          <div class="instruction-step">
+            <h4>📍 Location Services</h4>
+            <ol>
+              <li>Open your device <strong>Settings</strong></li>
+              <li>Tap <strong>Location</strong> (or <strong>Privacy</strong> → <strong>Location</strong>)</li>
+              <li>Turn on <strong>Use location</strong></li>
+              <li>Open <strong>Chrome</strong> (or your browser)</li>
+              <li>Tap the <strong>three dots</strong> menu → <strong>Settings</strong></li>
+              <li>Tap <strong>Site settings</strong> → <strong>Location</strong></li>
+              <li>Turn on <strong>Location</strong></li>
+              <li>Return to this page and click "Request Access" above</li>
+            </ol>
+            <p style="margin-top: 1rem;"><strong>Alternative:</strong> When prompted by this website, tap <strong>Allow</strong> for location access.</p>
+          </div>
+        </div>
+
+        <!-- Desktop Instructions -->
+        <div class="tab-content" id="desktop">
+          <div class="instruction-step">
+            <h4>⚠️ Desktop Not Recommended</h4>
+            <p>This application is designed for mobile devices with motion sensors. Desktop computers typically don't have accelerometers needed for accurate speed tracking.</p>
+            <p style="margin-top: 1rem;"><strong>Please use a smartphone or tablet for the best experience.</strong></p>
+          </div>
+
+          <div class="instruction-step">
+            <h4>📍 Location (Desktop Browser)</h4>
+            <p>If you still want to test on desktop (GPS only, no motion tracking):</p>
+            <ol>
+              <li>Click the <strong>lock icon</strong> in the address bar</li>
+              <li>Find <strong>Location</strong> in the permissions list</li>
+              <li>Change it to <strong>Allow</strong></li>
+              <li>Refresh this page</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // State management
+    let sensors = {
+      motion: { granted: false, active: false },
+      gps: { granted: false, active: false }
+    };
+
+    // Check for redirect from tracker
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('redirect') === 'tracker') {
+      document.getElementById('redirectWarning').classList.add('show');
+    }
+
+    // Tab switching
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const targetTab = tab.dataset.tab;
+        
+        // Update active tab
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        // Update active content
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.getElementById(targetTab).classList.add('active');
+      });
+    });
+
+    // Check initial permissions
+    async function checkInitialPermissions() {
+      await checkDeviceMotion();
+      await checkGPS();
+      updateStartButton();
+    }
+
+    // Check Device Motion
+    async function checkDeviceMotion() {
+      const card = document.getElementById('motionCard');
+      const indicator = document.getElementById('motionIndicator');
+      const button = document.getElementById('motionButton');
+      const testStatus = document.getElementById('motionTest');
+
+      if (!('DeviceMotionEvent' in window)) {
+        card.classList.add('denied');
+        indicator.textContent = '❌';
+        testStatus.textContent = 'Not available on this device';
+        testStatus.classList.add('inactive');
+        button.disabled = true;
+        return;
+      }
+
+      // Check if permission is required (iOS)
+      if (typeof DeviceMotionEvent.requestPermission === 'function') {
+        // iOS - can't check without requesting
+        indicator.textContent = '⏳';
+        testStatus.textContent = 'Permission required (iOS)';
+        button.disabled = false;
+      } else {
+        // Android/Desktop - assume available
+        sensors.motion.granted = true;
+        card.classList.add('granted');
+        indicator.textContent = '✓';
+        button.disabled = true;
+        button.textContent = 'Granted';
+        testStatus.textContent = 'Testing sensor...';
+        startMotionTest();
+      }
+    }
+
+    // Check GPS
+    async function checkGPS() {
+      const card = document.getElementById('gpsCard');
+      const indicator = document.getElementById('gpsIndicator');
+      const button = document.getElementById('gpsButton');
+      const testStatus = document.getElementById('gpsTest');
+
+      if (!('geolocation' in navigator)) {
+        card.classList.add('denied');
+        indicator.textContent = '❌';
+        testStatus.textContent = 'Not available on this device';
+        testStatus.classList.add('inactive');
+        button.disabled = true;
+        return;
+      }
+
+      // Try to get position to check permission
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          sensors.gps.granted = true;
+          card.classList.add('granted');
+          indicator.textContent = '✓';
+          button.disabled = true;
+          button.textContent = 'Granted';
+          testStatus.textContent = 'Testing sensor...';
+          startGPSTest();
+          updateStartButton();
+        },
+        (error) => {
+          indicator.textContent = '⏳';
+          testStatus.textContent = 'Permission required';
+          button.disabled = false;
+        },
+        { timeout: 1000, maximumAge: 300000 }
+      );
+    }
+
+    // Request Device Motion Permission
+    document.getElementById('motionButton').addEventListener('click', async () => {
+      if (typeof DeviceMotionEvent.requestPermission === 'function') {
+        try {
+          const permission = await DeviceMotionEvent.requestPermission();
+          if (permission === 'granted') {
+            handleMotionGranted();
+          } else {
+            alert('Motion permission was denied. Please enable it in your device settings.');
+          }
+        } catch (error) {
+          alert('Unable to request motion permission. Please check your browser settings.');
+        }
+      } else {
+        handleMotionGranted();
+      }
+    });
+
+    function handleMotionGranted() {
+      sensors.motion.granted = true;
+      const card = document.getElementById('motionCard');
+      const indicator = document.getElementById('motionIndicator');
+      const button = document.getElementById('motionButton');
+      const testStatus = document.getElementById('motionTest');
+      
+      card.classList.add('granted');
+      indicator.textContent = '✓';
+      button.disabled = true;
+      button.textContent = 'Granted';
+      testStatus.textContent = 'Testing sensor...';
+      
+      startMotionTest();
+      updateStartButton();
+    }
+
+    // Request GPS Permission
+    document.getElementById('gpsButton').addEventListener('click', () => {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          sensors.gps.granted = true;
+          const card = document.getElementById('gpsCard');
+          const indicator = document.getElementById('gpsIndicator');
+          const button = document.getElementById('gpsButton');
+          const testStatus = document.getElementById('gpsTest');
+          
+          card.classList.add('granted');
+          indicator.textContent = '✓';
+          button.disabled = true;
+          button.textContent = 'Granted';
+          testStatus.textContent = 'Testing sensor...';
+          
+          startGPSTest();
+          updateStartButton();
+        },
+        (error) => {
+          alert('GPS permission was denied. Please enable it in your device settings and try again.');
+        },
+        { enableHighAccuracy: true, timeout: 5000 }
+      );
+    });
+
+    // Test Motion Sensor (background testing)
+    function startMotionTest() {
+      const testStatus = document.getElementById('motionTest');
+      let lastReading = 0;
+      
+      const motionHandler = (event) => {
+        if (event.accelerationIncludingGravity) {
+          lastReading = Date.now();
+          sensors.motion.active = true;
+          testStatus.textContent = 'Sensor active ✓';
+          testStatus.classList.remove('inactive');
+          testStatus.classList.add('active');
+        }
+      };
+      
+      window.addEventListener('devicemotion', motionHandler);
+      
+      // Check every second if sensor is still active
+      setInterval(() => {
+        if (sensors.motion.granted) {
+          if (Date.now() - lastReading > 2000) {
+            sensors.motion.active = false;
+            testStatus.textContent = 'Sensor not responding';
+            testStatus.classList.remove('active');
+            testStatus.classList.add('inactive');
+          }
+        }
+      }, 1000);
+    }
+
+    // Test GPS Sensor (background testing)
+    function startGPSTest() {
+      const testStatus = document.getElementById('gpsTest');
+      let lastReading = 0;
+      
+      const watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          lastReading = Date.now();
+          sensors.gps.active = true;
+          testStatus.textContent = 'Sensor active ✓';
+          testStatus.classList.remove('inactive');
+          testStatus.classList.add('active');
+        },
+        (error) => {
+          sensors.gps.active = false;
+          testStatus.textContent = 'GPS error: ' + error.message;
+          testStatus.classList.remove('active');
+          testStatus.classList.add('inactive');
+        },
+        { enableHighAccuracy: true, maximumAge: 1000 }
+      );
+      
+      // Check every second if sensor is still active
+      setInterval(() => {
+        if (sensors.gps.granted) {
+          if (Date.now() - lastReading > 3000) {
+            sensors.gps.active = false;
+            testStatus.textContent = 'GPS signal lost';
+            testStatus.classList.remove('active');
+            testStatus.classList.add('inactive');
+          }
+        }
+      }, 1000);
+    }
+
+    // Update Start Button
+    function updateStartButton() {
+      const button = document.getElementById('startButton');
+      if (sensors.motion.granted && sensors.gps.granted) {
+        button.disabled = false;
+      } else {
+        button.disabled = true;
+      }
+    }
+
+    // Start Button Click
+    document.getElementById('startButton').addEventListener('click', () => {
+      window.location.href = 'tracker.html';
+    });
+
+    // Initialize
+    checkInitialPermissions();
+  </script>
+</body>
+</html>
+

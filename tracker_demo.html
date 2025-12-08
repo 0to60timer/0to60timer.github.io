@@ -1,0 +1,2758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drag Racing Speed Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #000;
+            color: #fff;
+            padding: 10px;
+            user-select: none;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Desktop-specific improvements */
+        @media (min-width: 768px) {
+            .container {
+                padding: 20px;
+                margin-top: 20px;
+            }
+            
+            body {
+                padding: 0;
+            }
+            
+            .speed-sign {
+                width: 180px;
+                height: 200px;
+                padding: 20px;
+            }
+            
+            .speed-value {
+                font-size: 54px;
+            }
+            
+            .speed-display .sensor-display {
+                width: 180px;
+            }
+            
+            .unit-toggle-small {
+                font-size: 14px;
+                padding: 8px 16px;
+                margin-bottom: 15px;
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #ff6b35;
+        }
+
+        .main-layout {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            align-items: flex-start;
+        }
+
+        .left-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            flex: 0 0 auto;
+        }
+
+        .speed-display {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* Desktop layout improvements */
+        @media (min-width: 768px) {
+            .main-layout {
+                justify-content: space-between;
+                max-width: 100%;
+            }
+            
+            .left-controls {
+                flex: 0 0 200px;
+                margin-right: 40px;
+            }
+            
+            .speed-display {
+                flex: 0 0 auto;
+                margin: 0 auto;
+            }
+        }
+
+        .unit-toggle {
+            background: #333;
+            border: 2px solid #ff6b35;
+            color: #fff;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            min-height: 44px;
+            width: 200px;
+        }
+
+        .unit-toggle:active {
+            background: #ff6b35;
+        }
+
+        .unit-toggle-small {
+            background: #333;
+            border: 2px solid #ff6b35;
+            color: #fff;
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            min-height: 32px;
+            width: auto;
+            margin-bottom: 10px;
+        }
+
+        .unit-toggle-small:active {
+            background: #ff6b35;
+        }
+
+        .run-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .sensor-display {
+            background: #333;
+            padding: 8px 12px;
+            border-radius: 15px;
+            border: 1px solid #555;
+            font-size: 12px;
+            color: #fff;
+            text-align: center;
+            width: 200px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .sensor-display:hover {
+            background: #444;
+        }
+
+        .sensor-display.missing {
+            background: #330000;
+            border-color: #ff0000;
+            color: #ff4444;
+        }
+
+        .sensor-display.missing:hover {
+            background: #440000;
+        }
+
+        .sensor-display.connected {
+            background: #003300;
+            border-color: #00ff00;
+            color: #44ff44;
+        }
+
+        .sensor-display.connected:hover {
+            background: #004400;
+        }
+
+        .speed-display .sensor-display {
+            width: 160px;
+            max-width: 90vw;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            font-size: 12px;
+            min-height: 80px;
+        }
+
+        .status-item {
+            background: #333;
+            padding: 8px 12px;
+            border-radius: 15px;
+            border: 1px solid #555;
+            height: fit-content;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+                    .status-active {
+                border-color: #00ff00;
+                background: #003300;
+            }
+
+            .sensor-display.status-active {
+                border-color: #00ff00;
+                background: #003300;
+            }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px;
+            background: #333;
+            border: 2px solid #ff6b35;
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            min-height: 44px;
+            width: 200px;
+        }
+
+        .btn:active {
+            background: #ff6b35;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: #ff6b35;
+            border-color: #ff6b35;
+        }
+
+        .btn-success {
+            background: #28a745;
+            border-color: #28a745;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            border-color: #dc3545;
+        }
+
+        .chart-container {
+            background: #111;
+            border: 2px solid #333;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            height: 300px;
+            position: relative;
+        }
+
+        .chart-status-overlay {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .chart-status {
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            border: 1px solid #555;
+        }
+
+        .chart-confidence {
+            background: rgba(0,0,0,0.8);
+            color: #ccc;
+            padding: 6px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            border: 1px solid #555;
+        }
+
+        #chart {
+            width: 100%;
+            height: 100%;
+            border-radius: 6px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .metric-card {
+            background: #222;
+            border: 2px solid #444;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .metric-card.achieved {
+            border-color: #00ff00;
+            background: #003300;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: #ccc;
+            margin-bottom: 5px;
+        }
+
+        .metric-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .metric-target {
+            font-size: 10px;
+            color: #888;
+            margin-top: 3px;
+        }
+
+        .calibration-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #222;
+            border: 2px solid #ff6b35;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            max-width: 300px;
+        }
+
+        .calibration-progress {
+            width: 100%;
+            height: 10px;
+            background: #333;
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: #ff6b35;
+            width: 0%;
+            transition: width 0.1s ease;
+        }
+
+        .warning {
+            background: #ff6b35;
+            color: #000;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .metric-card {
+            transition: all 0.2s ease;
+        }
+
+        .metric-card.clickable {
+            cursor: pointer;
+        }
+
+        .metric-card.clickable:hover {
+            transform: scale(1.02);
+            border-color: #ff6b35;
+        }
+
+        .metric-card.not-clickable {
+            cursor: default;
+        }
+
+        .metric-recent {
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .metric-best {
+            font-size: 10px;
+            color: #00ff00;
+            margin-top: 3px;
+        }
+
+        .history-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .history-content {
+            background: #222;
+            border: 2px solid #ff6b35;
+            border-radius: 15px;
+            padding: 20px;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+            width: 90%;
+        }
+
+        .history-header {
+            color: #ff6b35;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .history-table th,
+        .history-table td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #444;
+            color: #fff;
+            font-size: 12px;
+        }
+
+        .history-table th {
+            color: #ff6b35;
+            font-weight: bold;
+        }
+
+        .history-close {
+            background: #ff6b35;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            display: block;
+            margin: 15px auto 0;
+        }
+
+        .reset-section {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            border-top: 1px solid #333;
+        }
+
+        .confirm-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .confirm-content {
+            background: #222;
+            border: 2px solid #dc3545;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 350px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .confirm-header {
+            color: #dc3545;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .confirm-message {
+            color: #fff;
+            margin-bottom: 25px;
+            line-height: 1.4;
+        }
+
+        .confirm-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .confirm-yes,
+        .confirm-no {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            min-width: 80px;
+        }
+
+        .confirm-yes {
+            background: #dc3545;
+            color: #fff;
+        }
+
+        .confirm-no {
+            background: #666;
+            color: #fff;
+        }
+
+        .permissions-warning {
+            background: #2a1f00;
+            border: 2px solid #ff8c00;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #fff;
+        }
+
+        .permissions-warning.hidden {
+            display: none;
+        }
+
+        .warning-header {
+            color: #ff8c00;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .warning-content {
+            font-size: 12px;
+            line-height: 1.4;
+            margin-bottom: 15px;
+        }
+
+        .permission-links {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .permission-link {
+            color: #4a9eff;
+            text-decoration: none;
+            font-size: 11px;
+            padding: 8px 12px;
+            background: rgba(74, 158, 255, 0.1);
+            border-radius: 4px;
+            border: 1px solid rgba(74, 158, 255, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .permission-link:hover {
+            background: rgba(74, 158, 255, 0.2);
+            border-color: rgba(74, 158, 255, 0.5);
+        }
+
+        .permission-link::before {
+            content: "🔗 ";
+            margin-right: 4px;
+        }
+
+        .instruction-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .instruction-content {
+            background: #222;
+            border: 2px solid #ff6b35;
+            border-radius: 15px;
+            padding: 25px;
+            max-width: 400px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .instruction-header {
+            color: #ff6b35;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .instruction-steps {
+            color: #fff;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .instruction-steps ol {
+            padding-left: 20px;
+        }
+
+        .instruction-steps li {
+            margin-bottom: 8px;
+        }
+
+        .instruction-close {
+            background: #ff6b35;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            display: block;
+            margin: 0 auto;
+            width: 100px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .touch-locked {
+            pointer-events: none;
+        }
+
+        .touch-locked .btn-danger {
+            pointer-events: auto;
+        }
+
+        .wake-lock-active {
+            position: relative;
+        }
+
+        .wake-lock-active::after {
+            content: "🔒";
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            font-size: 16px;
+            opacity: 0.8;
+            z-index: 100;
+            background: rgba(0,0,0,0.7);
+            color: #fff;
+            padding: 4px 6px;
+            border-radius: 4px;
+        }
+
+        .speed-sign {
+            background: #fff;
+            color: #000;
+            border: 4px solid #ff0000;
+            border-radius: 15px;
+            width: 160px;
+            height: 180px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            position: relative;
+            flex-shrink: 0;
+            padding: 15px;
+        }
+
+        .speed-value {
+            font-size: 48px;
+            font-weight: 900;
+            line-height: 1;
+            color: #000;
+        }
+
+        .speed-unit {
+            font-size: 14px;
+            font-weight: bold;
+            color: #666;
+            margin-top: 2px;
+        }
+
+
+
+        .speed-sign.moving {
+            border-color: #ff6b35;
+            animation: pulse 1s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulse {
+            from { 
+                box-shadow: 0 4px 8px rgba(0,0,0,0.3); 
+            }
+            to { 
+                box-shadow: 0 4px 15px rgba(255, 107, 53, 0.6); 
+            }
+        }
+
+        @media (orientation: landscape) {
+            .metrics-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            }
+            
+            .chart-container {
+                height: 200px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .title {
+                font-size: 20px;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .status-bar {
+                gap: 5px;
+            }
+            
+            .status-item {
+                padding: 6px 8px;
+                font-size: 10px;
+            }
+            
+            .speed-sign {
+                width: 100px;
+                height: 120px;
+                padding: 8px;
+            }
+            
+            .speed-value {
+                font-size: 30px;
+            }
+            
+            .speed-display .sensor-display {
+                width: 100px;
+                max-width: 85vw;
+                font-size: 10px;
+                padding: 6px 8px;
+            }
+            
+            .unit-toggle-small {
+                font-size: 10px;
+                padding: 4px 8px;
+                margin-bottom: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title">Drag Racing Speed Tracker</div>
+        </div>
+
+        <div id="browserWarning" class="warning hidden"></div>
+
+    <div class="main-layout">
+        <div class="left-controls">
+            <div class="run-controls">
+                <button id="startBtn" class="btn btn-success">Start Run</button>
+                <button id="stopBtn" class="btn btn-danger hidden">Stop Run</button>
+            </div>
+            
+            <div id="sensorStatus" class="sensor-display missing">Device Motion: Click to Enable</div>
+            <div id="gpsStatus" class="sensor-display missing">GPS: Click to Enable</div>
+        </div>
+        
+        <div class="speed-display">
+            <button id="unitToggle" class="unit-toggle-small">Switch to Kilometers</button>
+            <div id="currentSpeed" class="speed-sign">
+                <div class="speed-value">0</div>
+                <div class="speed-unit">mph</div>
+            </div>
+            <div id="speedConfidence" class="sensor-display">Confidence: 0%</div>
+        </div>
+    </div>
+
+    <div id="permissionsWarning" class="permissions-warning">
+        <div class="warning-header">
+            ⚠️ Accuracy Warning
+        </div>
+        <div class="warning-content">
+            For best accuracy, enable both Location Services and Device Motion permissions. Without these, measurements may be significantly less accurate.
+        </div>
+        <div class="permission-links" id="permissionLinks">
+            <!-- Links will be populated by JavaScript based on device type -->
+        </div>
+    </div>
+
+    <div class="chart-container">
+        <div class="chart-status-overlay">
+            <div id="runStatus" class="chart-status">Status: Standby</div>
+        </div>
+        <canvas id="chart"></canvas>
+    </div>
+
+    <div class="metrics-grid" id="metricsGrid">
+        <!-- Metrics will be populated by JavaScript -->
+    </div>
+
+    <div class="reset-section">
+        <button id="resetBtn" class="btn btn-danger">Reset All Data</button>
+    </div>
+
+    <div id="calibrationModal" class="calibration-modal hidden">
+        <div class="modal-content">
+            <h3>Sensor Calibration</h3>
+            <p>Hold device steady in a secure position for calibration & accurate data</p>
+            <div class="calibration-progress">
+                <div id="calibrationProgress" class="progress-bar"></div>
+            </div>
+            <p id="calibrationText">Keep device still...</p>
+        </div>
+    </div>
+
+    <div id="historyModal" class="history-modal hidden">
+        <div class="history-content">
+            <div id="historyHeader" class="history-header">Metric History</div>
+            <table class="history-table" id="historyTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Time</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                </tbody>
+            </table>
+            <button class="history-close" onclick="tracker.closeHistoryModal()">Close</button>
+        </div>
+    </div>
+
+    <div id="confirmModal" class="confirm-modal hidden">
+        <div class="confirm-content">
+            <div class="confirm-header">Reset All Data?</div>
+            <div class="confirm-message">
+                This will permanently delete all your racing history and metrics. This action cannot be undone.
+            </div>
+            <div class="confirm-buttons">
+                <button class="confirm-no" onclick="tracker.closeConfirmModal()">Cancel</button>
+                <button class="confirm-yes" onclick="tracker.confirmReset()">Reset All</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instruction Modals -->
+    <div id="iosMotionModal" class="instruction-modal hidden">
+        <div class="instruction-content">
+            <div class="instruction-header">Enable Motion & Fitness on iPhone</div>
+            <div class="instruction-steps">
+                <ol>
+                    <li>Open the <strong>Settings</strong> app on your iPhone</li>
+                    <li>Scroll down and tap <strong>Privacy & Security</strong></li>
+                    <li>Tap <strong>Motion & Fitness</strong></li>
+                    <li>Turn on <strong>Fitness Tracking</strong></li>
+                    <li>Scroll down and find <strong>Safari</strong> (or your browser)</li>
+                    <li>Turn on the toggle next to your browser</li>
+                    <li>Return to this page and refresh</li>
+                </ol>
+            </div>
+            <button class="instruction-close" onclick="tracker.closeInstructionModal()">Close</button>
+        </div>
+    </div>
+
+    <div id="androidMotionModal" class="instruction-modal hidden">
+        <div class="instruction-content">
+            <div class="instruction-header">Enable Device Motion on Android</div>
+            <div class="instruction-steps">
+                <ol>
+                    <li>Open <strong>Chrome</strong> (or your browser)</li>
+                    <li>Tap the <strong>three dots</strong> menu in the top-right</li>
+                    <li>Tap <strong>Settings</strong></li>
+                    <li>Tap <strong>Site settings</strong></li>
+                    <li>Tap <strong>Motion sensors</strong></li>
+                    <li>Turn on <strong>Motion sensors</strong></li>
+                    <li>Return to this page and refresh</li>
+                </ol>
+                <p><strong>Alternative:</strong> When prompted by this website, tap <strong>Allow</strong> for motion access.</p>
+            </div>
+            <button class="instruction-close" onclick="tracker.closeInstructionModal()">Close</button>
+        </div>
+    </div>
+
+    <div id="iosGpsModal" class="instruction-modal hidden">
+        <div class="instruction-content">
+            <div class="instruction-header">Enable Location Services on iPhone</div>
+            <div class="instruction-steps">
+                <ol>
+                    <li>Open the <strong>Settings</strong> app on your iPhone</li>
+                    <li>Tap <strong>Privacy & Security</strong></li>
+                    <li>Tap <strong>Location Services</strong></li>
+                    <li>Turn on <strong>Location Services</strong> at the top</li>
+                    <li>Scroll down and find <strong>Safari</strong> (or your browser)</li>
+                    <li>Tap on your browser and select <strong>While Using App</strong></li>
+                    <li>Return to this page and refresh</li>
+                </ol>
+            </div>
+            <button class="instruction-close" onclick="tracker.closeInstructionModal()">Close</button>
+        </div>
+    </div>
+
+    <div id="androidGpsModal" class="instruction-modal hidden">
+        <div class="instruction-content">
+            <div class="instruction-header">Enable Location Services on Android</div>
+            <div class="instruction-steps">
+                <ol>
+                    <li>Open your device <strong>Settings</strong></li>
+                    <li>Tap <strong>Location</strong> (or <strong>Privacy</strong> → <strong>Location</strong>)</li>
+                    <li>Turn on <strong>Use location</strong></li>
+                    <li>Open <strong>Chrome</strong> (or your browser)</li>
+                    <li>Tap the <strong>three dots</strong> menu → <strong>Settings</strong></li>
+                    <li>Tap <strong>Site settings</strong> → <strong>Location</strong></li>
+                    <li>Turn on <strong>Location</strong></li>
+                    <li>Return to this page and refresh</li>
+                </ol>
+                <p><strong>Alternative:</strong> When prompted by this website, tap <strong>Allow</strong> for location access.</p>
+            </div>
+            <button class="instruction-close" onclick="tracker.closeInstructionModal()">Close</button>
+        </div>
+    </div>
+    
+    </div> <!-- Close container -->
+    
+    <script>
+        class DragRacingTracker {
+            constructor() {
+                this.isMetric = false;
+                this.isCalibrated = false;
+                this.isRunning = false;
+                this.runStopped = false;
+                this.hasPermission = false;
+                this.sensorData = [];
+                this.metrics = {};
+                this.runStartTime = null;
+                this.calibrationOffset = { x: 0, y: 0, z: 0 };
+                this.lastTimestamp = 0;
+                this.velocity = 0;
+                this.distance = 0;
+                this.position = 0;
+                this.chartData = [];
+                this.samplingRate = 0;
+                this.lastSampleTime = 0;
+                this.sampleCount = 0;
+                
+                // Enhanced filtering and processing
+                this.accelerationBuffer = [];
+                this.velocityBuffer = [];
+                this.motionThreshold = 0.5; // m/s² threshold for motion detection
+                this.noiseThreshold = 2.0; // m/s² threshold for noise rejection
+                this.isMoving = false;
+                this.stationaryTime = 0;
+                this.lastValidAcceleration = 0;
+                
+                // Multi-sensor fusion
+                this.gpsAvailable = false;
+                this.gpsPermissionRequested = false;
+                this.gpsSpeed = 0;
+                this.gpsLastUpdate = 0;
+                this.orientationSensor = null;
+                this.deviceOrientation = { alpha: 0, beta: 0, gamma: 0 };
+                this.velocityConfidence = 0;
+                this.lastGpsPosition = null;
+                
+                // Wake lock management
+                this.wakeLock = null;
+                this.wakeLockInterval = null;
+                
+                this.initMetrics();
+                this.initUI();
+                this.detectBrowser();
+            }
+
+            initMetrics() {
+                this.metricDefinitions = {
+                    speed: [
+                        { id: '0-40kph', label: '0-40 km/h', target: null, recent: null, best: null, history: [] },
+                        { id: '0-60kph', label: '0-60 km/h', target: null, recent: null, best: null, history: [] },
+                        { id: '0-80kph', label: '0-80 km/h', target: null, recent: null, best: null, history: [] },
+                        { id: '0-100kph', label: '0-100 km/h', target: null, recent: null, best: null, history: [] },
+                        { id: '0-120kph', label: '0-120 km/h', target: null, recent: null, best: null, history: [], conditional: true },
+                        { id: '0-200kph', label: '0-200 km/h', target: null, recent: null, best: null, history: [], conditional: true },
+                        { id: '0-30mph', label: '0-30 mph', target: null, recent: null, best: null, history: [] },
+                        { id: '0-60mph', label: '0-60 mph', target: null, recent: null, best: null, history: [] },
+                        { id: '60-100mph', label: '60-100 mph', target: null, recent: null, best: null, history: [], conditional: true },
+                        { id: '0-100mph', label: '0-100 mph', target: null, recent: null, best: null, history: [], conditional: true },
+                        { id: '0-150mph', label: '0-150 mph', target: null, recent: null, best: null, history: [], conditional: true }
+                    ],
+                    distance: [
+                        { id: '1000m', label: '1000m', target: '22.6s', recent: null, best: null, history: [] },
+                        { id: '1/8mile', label: '1/8 mile', target: '8.7s @ 97.6mph', recent: null, best: null, history: [] },
+                        { id: '1/4mile', label: '1/4 mile', target: '11.9s @ 116.2mph', recent: null, best: null, history: [] },
+                        { id: '1mile', label: '1 mile', target: '30.9s @ 161.6mph', recent: null, best: null, history: [], conditional: true }
+                    ]
+                };
+                
+                // Load saved history from localStorage
+                this.loadMetricHistory();
+                
+                // Track achieved speeds during a run
+                this.runAchievements = {
+                    speedTargets: {
+                        '0-40kph': { achieved: false, fromSpeed: 0 },
+                        '0-60kph': { achieved: false, fromSpeed: 0 },
+                        '0-80kph': { achieved: false, fromSpeed: 0 },
+                        '0-100kph': { achieved: false, fromSpeed: 0 },
+                        '0-120kph': { achieved: false, fromSpeed: 0 },
+                        '0-200kph': { achieved: false, fromSpeed: 0 },
+                        '0-30mph': { achieved: false, fromSpeed: 0 },
+                        '0-60mph': { achieved: false, fromSpeed: 0 },
+                        '60-100mph': { achieved: false, fromSpeed: 60 },
+                        '0-100mph': { achieved: false, fromSpeed: 0 },
+                        '0-150mph': { achieved: false, fromSpeed: 0 }
+                    }
+                };
+            }
+
+            initUI() {
+                this.elements = {
+                    unitToggle: document.getElementById('unitToggle'),
+                    browserWarning: document.getElementById('browserWarning'),
+                    sensorStatus: document.getElementById('sensorStatus'),
+                    currentSpeed: document.getElementById('currentSpeed'),
+                    speedValue: document.querySelector('#currentSpeed .speed-value'),
+                    speedUnit: document.querySelector('#currentSpeed .speed-unit'),
+                    confidenceStatus: document.getElementById('speedConfidence'),
+                    runStatus: document.getElementById('runStatus'),
+                    startBtn: document.getElementById('startBtn'),
+                    stopBtn: document.getElementById('stopBtn'),
+                    resetBtn: document.getElementById('resetBtn'),
+                    chart: document.getElementById('chart'),
+                    metricsGrid: document.getElementById('metricsGrid'),
+                    calibrationModal: document.getElementById('calibrationModal'),
+                    calibrationProgress: document.getElementById('calibrationProgress'),
+                    calibrationText: document.getElementById('calibrationText'),
+                    permissionsWarning: document.getElementById('permissionsWarning'),
+                    permissionLinks: document.getElementById('permissionLinks'),
+                    gpsStatus: document.getElementById('gpsStatus')
+                };
+
+                this.initEventListeners();
+                this.initChart();
+                this.initOrientation();
+                this.initWakeLock();
+                this.renderMetrics();
+                // Initialize all detection before permission warning
+                this.sensorType = 'Not Connected';
+                this.initDeviceMotionDetection(); // async but we don't need to wait
+                this.initGPSDetection();
+                this.initPermissionWarning();
+                
+                // Initialize button states
+                this.elements.startBtn.classList.remove('hidden');
+                this.elements.stopBtn.classList.add('hidden');
+                
+                // Start background wake lock preparation immediately
+                this.prepareWakeLock();
+            }
+
+            initEventListeners() {
+                this.elements.unitToggle.addEventListener('click', () => this.toggleUnits());
+                this.elements.startBtn.addEventListener('click', () => this.startRun());
+                this.elements.stopBtn.addEventListener('click', () => this.stopRun());
+                this.elements.resetBtn.addEventListener('click', () => this.showResetConfirmation());
+
+                // Sensor status click handlers
+                this.elements.sensorStatus.addEventListener('click', () => this.handleSensorClick());
+                this.elements.gpsStatus.addEventListener('click', () => this.handleGpsClick());
+
+                // Keep screen awake during runs (non-blocking)
+                document.addEventListener('visibilitychange', () => {
+                    if (this.isRunning && !document.hidden) {
+                        // Restart keep alive when page becomes visible again
+                        this.startScreenKeepAlive();
+                    }
+                });
+
+                // Handle page focus events
+                window.addEventListener('focus', () => {
+                    if (this.isRunning) {
+                        // Restart keep alive when page gains focus
+                        this.startScreenKeepAlive();
+                    }
+                });
+
+
+            }
+
+            detectBrowser() {
+                const userAgent = navigator.userAgent;
+                const isIOS = /iPad|iPhone|iPod/.test(userAgent);
+                const isAndroid = /Android/.test(userAgent);
+                let warning = '';
+                let suggestions = '';
+
+                // Firefox detection (excluding Firefox on Android which uses Chrome engine)
+                if (userAgent.includes('Firefox') && !userAgent.includes('Mobile')) {
+                    warning = 'Firefox Desktop may have reduced sensor accuracy for drag racing.';
+                    suggestions = ' For mobile racing, use Chrome or Samsung Internet on your phone.';
+                } else if (userAgent.includes('FxiOS')) {
+                    // Firefox on iOS (uses Safari engine)
+                    warning = 'Firefox for iOS uses Safari engine which may limit sensor performance.';
+                    suggestions = ' For better results, try Chrome for iOS or Safari directly.';
+                } 
+                
+                // Safari detection (only actual Safari, not Chrome/other browsers on iOS)
+                else if (userAgent.includes('Safari') && !userAgent.includes('Chrome') && 
+                         !userAgent.includes('CriOS') && !userAgent.includes('FxiOS') && 
+                         !userAgent.includes('EdgiOS')) {
+                    
+                    if (isIOS) {
+                        // Safari on iOS
+                        const safariVersion = userAgent.match(/Version\/(\d+)/);
+                        const version = safariVersion ? parseInt(safariVersion[1]) : 0;
+                        
+                        if (version < 15) {
+                            warning = 'Safari versions below 15 may have limited sensor capabilities.';
+                            suggestions = ' Please update iOS/Safari or try Chrome for iOS for better performance.';
+                        } else if (version < 17) {
+                            warning = 'Safari may have reduced sensor sampling rates compared to Chrome.';
+                            suggestions = ' For optimal racing performance, try Chrome for iOS or Edge Mobile.';
+                        }
+                    } else {
+                        // Safari on macOS (shouldn't be used for racing)
+                        warning = 'Safari Desktop is not recommended for drag racing (no motion sensors).';
+                        suggestions = ' Please use this app on your mobile device with Chrome or Safari iOS.';
+                    }
+                } 
+                
+                // Legacy Edge detection
+                else if (userAgent.includes('Edge/') || (userAgent.includes('Edge') && !userAgent.includes('Edg/'))) {
+                    warning = 'Legacy Microsoft Edge may have compatibility issues.';
+                    suggestions = ' Please update to the new Microsoft Edge (Chromium) or try Chrome.';
+                }
+                
+                // Samsung Internet detection (usually good, but older versions may have issues)
+                else if (userAgent.includes('SamsungBrowser')) {
+                    const samsungVersion = userAgent.match(/SamsungBrowser\/(\d+)/);
+                    const version = samsungVersion ? parseInt(samsungVersion[1]) : 0;
+                    
+                    if (version < 15) {
+                        warning = 'Older Samsung Internet versions may have sensor limitations.';
+                        suggestions = ' Please update Samsung Internet or try Chrome for Android.';
+                    }
+                }
+
+                // Show optimal browser recommendations based on platform
+                if (warning) {
+                    this.elements.browserWarning.innerHTML = `⚠️ ${warning}${suggestions}`;
+                    this.elements.browserWarning.classList.remove('hidden');
+                } else {
+                    // Show platform-specific optimal browser info for first-time users
+                    let optimalBrowsers = '';
+                    if (isIOS) {
+                        optimalBrowsers = '✅ For best results on iOS: Chrome, Safari (iOS 15+), or Edge Mobile';
+                    } else if (isAndroid) {
+                        optimalBrowsers = '✅ For best results on Android: Chrome, Samsung Internet, or Firefox';
+                    }
+                    
+                    if (optimalBrowsers && !localStorage.getItem('dragRacingBrowserOptimal')) {
+                        this.elements.browserWarning.innerHTML = optimalBrowsers;
+                        this.elements.browserWarning.style.background = '#28a745';
+                        this.elements.browserWarning.classList.remove('hidden');
+                        localStorage.setItem('dragRacingBrowserOptimal', 'shown');
+                        
+                        // Auto-hide the positive message after 5 seconds
+                        setTimeout(() => {
+                            this.elements.browserWarning.classList.add('hidden');
+                        }, 5000);
+                    }
+                }
+            }
+
+
+
+            initSensors() {
+                this.sensorType = 'None';
+                
+                if ('LinearAccelerationSensor' in window) {
+                    try {
+                        this.sensor = new LinearAccelerationSensor({ frequency: 100 });
+                        this.sensor.addEventListener('reading', () => this.handleSensorReading());
+                        this.sensor.addEventListener('error', () => this.fallbackToDeviceMotion());
+                        this.sensor.start();
+                        this.sensorType = 'LinearAcceleration';
+                        this.updateSensorStatus();
+                    } catch (error) {
+                        this.fallbackToDeviceMotion();
+                    }
+                } else {
+                    this.fallbackToDeviceMotion();
+                }
+                
+                // GPS will be initialized when user starts first run
+            }
+
+            fallbackToDeviceMotion() {
+                if (window.DeviceMotionEvent) {
+                    window.addEventListener('devicemotion', (event) => this.handleDeviceMotion(event));
+                    this.sensorType = 'DeviceMotion';
+                    this.updateSensorStatus();
+                } else {
+                    this.sensorType = 'Not Available';
+                    this.updateSensorStatus();
+                }
+            }
+
+            initWakeLock() {
+                // Setup non-blocking screen keep alive system
+                this.screenKeepAliveInterval = null;
+                this.setupFallbackWakeLock();
+            }
+
+            startScreenKeepAlive() {
+                console.log('Starting screen keep alive (non-blocking)');
+                
+                // Visual indicator
+                this.elements.runStatus.classList.add('wake-lock-active');
+                
+                // Use non-blocking method to keep screen alive
+                this.activateFallbackWakeLock();
+            }
+
+            stopScreenKeepAlive() {
+                console.log('Stopping screen keep alive');
+                
+                // Remove visual indicator
+                this.elements.runStatus.classList.remove('wake-lock-active');
+                
+                // Stop the keep alive mechanism
+                this.deactivateFallbackWakeLock();
+            }
+
+            setupFallbackWakeLock() {
+                // Create invisible video element for iOS/older Android
+                const video = document.createElement('video');
+                video.setAttribute('muted', '');
+                video.setAttribute('playsinline', '');
+                video.setAttribute('loop', '');
+                video.style.position = 'fixed';
+                video.style.top = '-1px';
+                video.style.left = '-1px';
+                video.style.width = '1px';
+                video.style.height = '1px';
+                video.style.opacity = '0.01';
+                video.style.pointerEvents = 'none';
+                
+                // Create a minimal video data URL (1 second of black)
+                video.src = 'data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMWRhc2gAAAPEaW52ZW50AAABd2dhdGEAAAJgQXVkAAABd2dhdGEAAAJgQXVkAAABY2dhdGEAAAAgQXVk';
+                
+                document.body.appendChild(video);
+                this.fallbackVideo = video;
+            }
+
+            activateFallbackWakeLock() {
+                if (this.fallbackVideo) {
+                    this.fallbackVideo.play().catch(() => {
+                        // Silent fallback - try alternative method
+                        this.startAlternativeWakeLock();
+                    });
+                }
+
+                // Additional fallback: periodic invisible canvas updates
+                if (this.wakeLockInterval) {
+                    clearInterval(this.wakeLockInterval);
+                }
+                
+                this.wakeLockInterval = setInterval(() => {
+                    if (this.isRunning) {
+                        // Create invisible canvas activity
+                        const canvas = document.createElement('canvas');
+                        canvas.width = 1;
+                        canvas.height = 1;
+                        const ctx = canvas.getContext('2d');
+                        ctx.fillRect(0, 0, 1, 1);
+                        
+                        // Force a minimal DOM update
+                        document.body.style.transform = `translateZ(${Math.random() * 0.01}px)`;
+                    }
+                }, 15000); // Every 15 seconds
+            }
+
+            deactivateFallbackWakeLock() {
+                // Stop video fallback
+                if (this.fallbackVideo) {
+                    this.fallbackVideo.pause();
+                }
+                
+                // Clear interval-based fallbacks
+                if (this.wakeLockInterval) {
+                    clearInterval(this.wakeLockInterval);
+                    this.wakeLockInterval = null;
+                }
+                
+                // Reset any DOM modifications
+                document.body.style.transform = '';
+            }
+
+            startAlternativeWakeLock() {
+                // Even more aggressive fallback for devices that block video
+                if (this.wakeLockInterval) {
+                    clearInterval(this.wakeLockInterval);
+                }
+                
+                this.wakeLockInterval = setInterval(() => {
+                    if (this.isRunning) {
+                        // Multiple techniques to keep screen awake
+                        document.body.style.transform = `translateZ(${Math.random() * 0.001}px)`;
+                        
+                        // Audio context keep-alive (silent)
+                        if ('AudioContext' in window || 'webkitAudioContext' in window) {
+                            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                            const oscillator = audioContext.createOscillator();
+                            const gainNode = audioContext.createGain();
+                            oscillator.connect(gainNode);
+                            gainNode.connect(audioContext.destination);
+                            gainNode.gain.setValueAtTime(0, audioContext.currentTime); // Silent
+                            oscillator.start();
+                            oscillator.stop(audioContext.currentTime + 0.001);
+                        }
+                    }
+                }, 10000); // Every 10 seconds
+            }
+
+            prepareWakeLock() {
+                // Pre-activate fallback systems so they're ready when run starts
+                if (this.fallbackVideo && this.fallbackVideo.paused) {
+                    // Silently prepare video for immediate use
+                    this.fallbackVideo.load();
+                }
+                
+                // Test audio context availability
+                if ('AudioContext' in window || 'webkitAudioContext' in window) {
+                    try {
+                        const testContext = new (window.AudioContext || window.webkitAudioContext)();
+                        testContext.close(); // Clean up test
+                    } catch (e) {
+                        // Audio context not available
+                    }
+                }
+            }
+
+
+
+            updateSensorStatus() {
+                // Sensor status is now handled by checkPermissions method
+                // Just trigger the permission check to update displays
+                this.checkPermissions();
+            }
+
+            requestGPSPermission() {
+                if ('geolocation' in navigator) {
+                    this.gpsPermissionRequested = true;
+                    
+                    // First, get current position to trigger permission prompt
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            console.log('GPS permission granted');
+                            this.initGPS();
+                        },
+                        (error) => {
+                            console.warn('GPS permission denied or unavailable:', error);
+                            this.updateSensorStatus();
+                        },
+                        {
+                            enableHighAccuracy: true,
+                            timeout: 10000,
+                            maximumAge: 0
+                        }
+                    );
+                } else {
+                    console.warn('Geolocation not supported');
+                    this.updateSensorStatus();
+                }
+            }
+
+            initGPS() {
+                if ('geolocation' in navigator) {
+                    const options = {
+                        enableHighAccuracy: true,
+                        maximumAge: 1000,
+                        timeout: 5000
+                    };
+                    
+                    navigator.geolocation.watchPosition(
+                        (position) => this.handleGPSUpdate(position),
+                        (error) => {
+                            console.warn('GPS error:', error);
+                            this.updateSensorStatus();
+                        },
+                        options
+                    );
+                }
+            }
+
+            initOrientation() {
+                if ('DeviceOrientationEvent' in window) {
+                    window.addEventListener('deviceorientation', (event) => {
+                        this.deviceOrientation = {
+                            alpha: event.alpha || 0,
+                            beta: event.beta || 0,
+                            gamma: event.gamma || 0
+                        };
+                    });
+                }
+            }
+
+            handleGPSUpdate(position) {
+                const now = performance.now();
+                this.gpsLastUpdate = now;
+                
+                if (position.coords.speed !== null && position.coords.speed >= 0) {
+                    this.gpsSpeed = position.coords.speed; // m/s
+                    const wasGpsAvailable = this.gpsAvailable;
+                    this.gpsAvailable = true;
+                    
+                    // Update sensor status if GPS just became available
+                    if (!wasGpsAvailable) {
+                        this.updateSensorStatus();
+                    }
+                }
+                
+                // Calculate GPS-based distance if we have a previous position
+                if (this.lastGpsPosition && this.isRunning) {
+                    const distance = this.calculateDistance(
+                        this.lastGpsPosition.coords.latitude,
+                        this.lastGpsPosition.coords.longitude,
+                        position.coords.latitude,
+                        position.coords.longitude
+                    );
+                    
+                    // Use GPS distance as reference for validation
+                    const timeDiff = (now - this.lastGpsPosition.timestamp) / 1000;
+                    if (timeDiff > 0 && distance > 0) {
+                        const gpsCalculatedSpeed = distance / timeDiff;
+                        this.validateAccelerometerSpeed(gpsCalculatedSpeed);
+                    }
+                }
+                
+                this.lastGpsPosition = {
+                    coords: position.coords,
+                    timestamp: now
+                };
+            }
+
+            calculateDistance(lat1, lon1, lat2, lon2) {
+                const R = 6371000; // Earth's radius in meters
+                const dLat = (lat2 - lat1) * Math.PI / 180;
+                const dLon = (lon2 - lon1) * Math.PI / 180;
+                const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                         Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                         Math.sin(dLon/2) * Math.sin(dLon/2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                return R * c;
+            }
+
+            validateAccelerometerSpeed(gpsSpeed) {
+                const accelerometerSpeed = Math.abs(this.velocity);
+                const speedDifference = Math.abs(accelerometerSpeed - gpsSpeed);
+                const tolerance = Math.max(gpsSpeed * 0.3, 2.0); // 30% tolerance or 2 m/s minimum
+                
+                if (speedDifference > tolerance) {
+                    // Large discrepancy - apply correction
+                    const correctionFactor = gpsSpeed / Math.max(accelerometerSpeed, 0.1);
+                    this.velocity *= Math.min(Math.max(correctionFactor, 0.5), 2.0); // Limit correction
+                    this.velocityConfidence = Math.max(0, this.velocityConfidence - 0.2);
+                } else {
+                    // Good agreement - increase confidence
+                    this.velocityConfidence = Math.min(1.0, this.velocityConfidence + 0.1);
+                }
+            }
+
+            handleSensorReading() {
+                if (this.sensor) {
+                    this.processSensorData({
+                        x: this.sensor.x,
+                        y: this.sensor.y,
+                        z: this.sensor.z,
+                        timestamp: performance.now()
+                    });
+                }
+            }
+
+            handleDeviceMotion(event) {
+                if (event.accelerationIncludingGravity) {
+                    this.processSensorData({
+                        x: event.accelerationIncludingGravity.x,
+                        y: event.accelerationIncludingGravity.y,
+                        z: event.accelerationIncludingGravity.z - 9.81, // Remove gravity
+                        timestamp: performance.now()
+                    });
+                }
+            }
+
+            processSensorData(data) {
+                // Calculate sampling rate (for internal use only)
+                if (this.lastSampleTime) {
+                    this.sampleCount++;
+                    if (this.sampleCount % 10 === 0) {
+                        const rate = 1000 / ((data.timestamp - this.lastSampleTime) / 10);
+                        this.samplingRate = Math.round(rate);
+                    }
+                }
+                this.lastSampleTime = data.timestamp;
+
+                // Apply calibration offset
+                const calibratedData = {
+                    x: data.x - this.calibrationOffset.x,
+                    y: data.y - this.calibrationOffset.y,
+                    z: data.z - this.calibrationOffset.z,
+                    timestamp: data.timestamp
+                };
+
+                // Enhanced processing with filtering
+                const processedData = this.applyFiltering(calibratedData);
+                
+                this.sensorData.push(processedData);
+
+                if (this.isRunning && !this.runStopped) {
+                    this.updateMetrics(processedData);
+                } else if (this.isRunning && this.runStopped) {
+                    // Continue updating chart even when stopped to show real-time data collection
+                    this.updateChart();
+                }
+
+                // Keep only last 1000 samples to manage memory
+                if (this.sensorData.length > 1000) {
+                    this.sensorData.shift();
+                }
+            }
+
+            applyFiltering(data) {
+                // Calculate acceleration magnitude
+                const magnitude = Math.sqrt(data.x ** 2 + data.y ** 2 + data.z ** 2);
+                
+                // Add to acceleration buffer for filtering
+                this.accelerationBuffer.push({
+                    magnitude: magnitude,
+                    timestamp: data.timestamp,
+                    raw: { x: data.x, y: data.y, z: data.z }
+                });
+
+                // Keep buffer size manageable (last 20 samples for ~200ms at 100Hz)
+                if (this.accelerationBuffer.length > 20) {
+                    this.accelerationBuffer.shift();
+                }
+
+                // Apply noise rejection - discard extreme outliers
+                if (magnitude > this.noiseThreshold * 5) {
+                    // Use last valid acceleration if current reading is extreme noise
+                    return {
+                        ...data,
+                        filteredMagnitude: this.lastValidAcceleration
+                    };
+                }
+
+                // Apply moving average filter (middle 90% of recent samples)
+                let filteredMagnitude = magnitude;
+                if (this.accelerationBuffer.length >= 5) {
+                    const recentMagnitudes = this.accelerationBuffer
+                        .slice(-10)
+                        .map(d => d.magnitude)
+                        .sort((a, b) => a - b);
+                    
+                    // Remove top and bottom 5% (outlier rejection)
+                    const trimCount = Math.floor(recentMagnitudes.length * 0.05);
+                    const trimmedData = recentMagnitudes.slice(trimCount, -trimCount || undefined);
+                    
+                    // Calculate moving average of remaining data
+                    filteredMagnitude = trimmedData.reduce((sum, val) => sum + val, 0) / trimmedData.length;
+                }
+
+                // Motion detection with hysteresis
+                if (!this.isMoving && filteredMagnitude > this.motionThreshold) {
+                    this.isMoving = true;
+                    this.stationaryTime = 0;
+                } else if (this.isMoving && filteredMagnitude < this.motionThreshold * 0.5) {
+                    this.stationaryTime += 1;
+                    // Require 1 second of low acceleration to consider stopped
+                    if (this.stationaryTime > 100) { // ~1 sec at 100Hz
+                        this.isMoving = false;
+                        // Zero velocity update when stopped
+                        if (this.isRunning) {
+                            this.velocity *= 0.95; // Gradual velocity decay
+                        }
+                    }
+                }
+
+                this.lastValidAcceleration = filteredMagnitude;
+
+                return {
+                    ...data,
+                    filteredMagnitude: filteredMagnitude,
+                    isMoving: this.isMoving
+                };
+            }
+
+            async startCalibration() {
+                this.elements.calibrationModal.classList.remove('hidden');
+                this.elements.calibrationText.textContent = 'Keep device still...';
+                
+                const calibrationData = [];
+                const calibrationTime = 4500; // 4.5 seconds
+                const startTime = performance.now();
+
+                const calibrationInterval = setInterval(() => {
+                    const elapsed = performance.now() - startTime;
+                    const progress = (elapsed / calibrationTime) * 100;
+                    this.elements.calibrationProgress.style.width = `${Math.min(progress, 100)}%`;
+
+                    if (this.sensorData.length > 0) {
+                        calibrationData.push({...this.sensorData[this.sensorData.length - 1]});
+                    }
+
+                    if (elapsed >= calibrationTime) {
+                        clearInterval(calibrationInterval);
+                        this.finishCalibration(calibrationData);
+                    }
+                }, 50);
+            }
+
+            finishCalibration(calibrationData) {
+                if (calibrationData.length > 10) {
+                    // Remove outliers for better calibration
+                    const xValues = calibrationData.map(d => d.x).sort((a, b) => a - b);
+                    const yValues = calibrationData.map(d => d.y).sort((a, b) => a - b);
+                    const zValues = calibrationData.map(d => d.z).sort((a, b) => a - b);
+                    
+                    // Use median values to avoid outlier influence
+                    const medianIndex = Math.floor(calibrationData.length / 2);
+                    this.calibrationOffset = {
+                        x: xValues[medianIndex],
+                        y: yValues[medianIndex],
+                        z: zValues[medianIndex]
+                    };
+                    
+                    // Only reset buffers if not currently running (to preserve confidence building)
+                    if (!this.isRunning) {
+                        this.accelerationBuffer = [];
+                        this.velocityBuffer = [];
+                        this.velocity = 0;
+                        this.distance = 0;
+                        this.isMoving = false;
+                        this.stationaryTime = 0;
+                    }
+                    
+                    this.isCalibrated = true;
+                    
+                    // Update status to Recording if a run is active
+                    if (this.isRunning) {
+                        this.elements.runStatus.textContent = 'Status: Recording';
+                    }
+                }
+
+                this.elements.calibrationModal.classList.add('hidden');
+                this.elements.calibrationProgress.style.width = '0%';
+            }
+
+            async startRun() {
+                // Check and request permissions first
+                if (!this.hasPermission) {
+                    try {
+                        // Request device motion permission
+                        if ('DeviceMotionEvent' in window) {
+                            if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                                const permission = await DeviceMotionEvent.requestPermission();
+                                if (permission !== 'granted') {
+                                    alert('Device motion permission is required for racing metrics');
+                                    return;
+                                }
+                            }
+                            this.hasPermission = true;
+                            this.initSensors();
+                        } else {
+                            alert('Device motion sensors are not available on this device');
+                            return;
+                        }
+                    } catch (error) {
+                        alert('Unable to access device sensors. Please check your browser settings.');
+                        return;
+                    }
+                }
+
+                // Request GPS permission explicitly
+                if (!this.gpsPermissionRequested) {
+                    this.requestGPSPermission();
+                }
+
+                // Start run immediately and calibrate simultaneously
+                this.beginRun();
+                
+                // Auto-calibrate if needed (but don't wait for it)
+                if (!this.isCalibrated) {
+                    this.startCalibration();
+                }
+            }
+
+            beginRun() {
+                this.isRunning = true;
+                this.runStopped = false;
+                this.runStartTime = performance.now();
+                this.velocity = 0;
+                this.distance = 0;
+                this.chartData = [];
+                this.isNewRun = true;
+                
+                // Reset processing variables for immediate chart response
+                this.accelerationBuffer = [];
+                this.velocityBuffer = [];
+                this.isMoving = false;
+                this.stationaryTime = 0;
+                this.lastValidAcceleration = 0;
+                this.lastTimestamp = 0;
+                
+                // Launch detection variables
+                this.launchDetected = false;
+                this.launchTime = null;
+                this.launchAccelerationBuffer = [];
+                this.prelaunchTime = 0;
+                
+                // Reset achievements for this run
+                Object.keys(this.runAchievements.speedTargets).forEach(key => {
+                    this.runAchievements.speedTargets[key].achieved = false;
+                });
+                
+                // Reset distance achievements
+                this.runDistanceAchievements = {};
+
+                // Clear chart immediately and show empty state
+                this.updateChart();
+
+                this.elements.startBtn.classList.add('hidden');
+                this.elements.stopBtn.classList.remove('hidden');
+                
+                // Show calibrating status if not calibrated, otherwise recording
+                if (!this.isCalibrated) {
+                    this.elements.runStatus.textContent = 'Status: Calibrating...';
+                } else {
+                    this.elements.runStatus.textContent = 'Status: Recording';
+                }
+                this.elements.runStatus.classList.add('status-active');
+
+                // Keep screen awake without blocking touch
+                this.startScreenKeepAlive();
+            }
+
+            stopRun() {
+                this.isRunning = false;
+                this.elements.startBtn.classList.remove('hidden');
+                this.elements.stopBtn.classList.add('hidden');
+                this.elements.runStatus.textContent = 'Status: Stopped';
+                this.elements.runStatus.classList.remove('status-active');
+
+                // Stop keeping screen alive
+                this.stopScreenKeepAlive();
+
+                // Stop data collection and freeze chart
+                this.runStopped = true;
+
+                this.saveRun();
+            }
+
+            updateMetrics(sensorData) {
+                if (!this.runStartTime) return;
+
+                const timeElapsed = (sensorData.timestamp - this.runStartTime) / 1000;
+                const dt = timeElapsed - this.lastTimestamp;
+                
+                if (dt <= 0) return;
+
+                // Use filtered acceleration magnitude
+                const acceleration = sensorData.filteredMagnitude || 0;
+                
+                // GPS-guided velocity correction
+                const gpsAge = (sensorData.timestamp - this.gpsLastUpdate) / 1000;
+                const gpsReliable = this.gpsAvailable && gpsAge < 2.0; // GPS data less than 2 seconds old
+                
+                // Only update velocity if we're actually moving
+                if (sensorData.isMoving && acceleration > this.motionThreshold) {
+                    // Apply improved integration with drift correction
+                    const velocityChange = acceleration * dt;
+                    this.velocity += velocityChange;
+                    
+                    // GPS fusion - blend accelerometer and GPS velocities
+                    if (gpsReliable && this.gpsSpeed >= 0) {
+                        const gpsWeight = Math.min(0.3, this.velocityConfidence * 0.5); // Max 30% GPS influence
+                        this.velocity = (1 - gpsWeight) * this.velocity + gpsWeight * this.gpsSpeed;
+                    }
+                    
+                    // Add to velocity buffer for smoothing
+                    this.velocityBuffer.push(this.velocity);
+                    if (this.velocityBuffer.length > 10) {
+                        this.velocityBuffer.shift();
+                    }
+                    
+                    // Apply velocity smoothing (moving average)
+                    if (this.velocityBuffer.length >= 3) {
+                        const sortedVelocities = [...this.velocityBuffer].sort((a, b) => a - b);
+                        // Use median of recent velocities to reduce noise
+                        const medianIndex = Math.floor(sortedVelocities.length / 2);
+                        this.velocity = sortedVelocities[medianIndex];
+                    }
+                } else if (!sensorData.isMoving) {
+                    // More aggressive velocity decay when not moving
+                    if (gpsReliable && this.gpsSpeed < 1.0) {
+                        // GPS confirms we're stationary - rapidly zero velocity
+                        this.velocity *= 0.5;
+                    } else {
+                        // Normal decay
+                        this.velocity *= 0.85;
+                    }
+                    
+                    if (Math.abs(this.velocity) < 0.2) {
+                        this.velocity = 0; // Zero out small velocities
+                    }
+                }
+
+                // Additional drift correction - if GPS shows we're stopped, force zero
+                if (gpsReliable && this.gpsSpeed < 0.5 && Math.abs(this.velocity) > 2.0) {
+                    this.velocity *= 0.3; // Aggressive correction for large drift
+                }
+
+                // Ensure velocity is never negative (for drag racing)
+                this.velocity = Math.max(0, this.velocity);
+                
+                // Launch detection logic
+                if (!this.launchDetected) {
+                    this.detectLaunch(acceleration, sensorData.isMoving, timeElapsed);
+                }
+                
+                // Update distance (m) - only when moving
+                if (this.velocity > 0) {
+                    this.distance += this.velocity * dt;
+                }
+
+                // Convert to display units
+                const speedKph = this.velocity * 3.6;
+                const speedMph = speedKph * 0.621371;
+                const distanceM = this.distance;
+                const distanceFt = distanceM * 3.28084;
+
+                // Add data to chart
+                const currentSpeed = this.isMetric ? speedKph : speedMph;
+                const gpsSpeedConverted = this.isMetric ? this.gpsSpeed * 3.6 : this.gpsSpeed * 2.237;
+                this.chartData.push({ 
+                    time: timeElapsed, 
+                    speed: currentSpeed, 
+                    gpsSpeed: gpsReliable ? gpsSpeedConverted : null,
+                    acceleration: acceleration,
+                    isMoving: sensorData.isMoving,
+                    confidence: this.velocityConfidence
+                });
+                
+                // Keep only last 30 seconds of data
+                this.chartData = this.chartData.filter(d => d.time > timeElapsed - 30);
+
+                // Always update chart when we have new data
+                this.updateChart();
+
+                // Update speed sign display
+                const speedUnit = this.isMetric ? 'km/h' : 'mph';
+                const speedValue = Math.round(currentSpeed);
+                
+                this.elements.speedValue.textContent = speedValue;
+                this.elements.speedUnit.textContent = speedUnit;
+                
+                // Add visual feedback when moving
+                if (sensorData.isMoving && speedValue > 5) {
+                    this.elements.currentSpeed.classList.add('moving');
+                } else {
+                    this.elements.currentSpeed.classList.remove('moving');
+                }
+                
+                // Update confidence display
+                const confidencePercent = Math.round(this.velocityConfidence * 100);
+                this.elements.confidenceStatus.textContent = `Confidence: ${confidencePercent}%`;
+                if (confidencePercent > 70) {
+                    this.elements.confidenceStatus.classList.add('status-active');
+                } else {
+                    this.elements.confidenceStatus.classList.remove('status-active');
+                }
+
+                // Check speed metrics
+                this.checkSpeedMetric('0-40kph', speedKph, 40);
+                this.checkSpeedMetric('0-60kph', speedKph, 60);
+                this.checkSpeedMetric('0-80kph', speedKph, 80);
+                this.checkSpeedMetric('0-100kph', speedKph, 100);
+                this.checkSpeedMetric('0-120kph', speedKph, 120);
+                this.checkSpeedMetric('0-200kph', speedKph, 200);
+                this.checkSpeedMetric('0-30mph', speedMph, 30);
+                this.checkSpeedMetric('0-60mph', speedMph, 60);
+                this.checkSpeedMetric('60-100mph', speedMph, 100, 60);
+                this.checkSpeedMetric('0-100mph', speedMph, 100);
+                this.checkSpeedMetric('0-150mph', speedMph, 150);
+
+                // Check distance metrics
+                this.checkDistanceMetric('1000m', distanceM, 1000, timeElapsed);
+                this.checkDistanceMetric('1/8mile', distanceM, 201.168, timeElapsed); // 1/8 mile in meters
+                this.checkDistanceMetric('1/4mile', distanceM, 402.336, timeElapsed); // 1/4 mile in meters
+                this.checkDistanceMetric('1mile', distanceM, 1609.344, timeElapsed); // 1 mile in meters
+
+                this.lastTimestamp = timeElapsed;
+                this.renderMetrics();
+            }
+
+            detectLaunch(acceleration, isMoving, timeElapsed) {
+                // Add current acceleration to launch detection buffer
+                this.launchAccelerationBuffer.push({
+                    acceleration: acceleration,
+                    isMoving: isMoving,
+                    timestamp: timeElapsed
+                });
+                
+                // Keep only last 2 seconds of data for launch detection
+                this.launchAccelerationBuffer = this.launchAccelerationBuffer.filter(
+                    data => data.timestamp > timeElapsed - 2.0
+                );
+                
+                // Launch detection criteria:
+                // 1. Must have sustained acceleration > threshold for at least 0.5 seconds
+                // 2. Must be moving consistently
+                // 3. Velocity should be increasing
+                
+                if (this.launchAccelerationBuffer.length >= 10) { // At least 0.1 seconds at 100Hz
+                    const recentData = this.launchAccelerationBuffer.slice(-10); // Last 0.1 seconds
+                    const sustainedAcceleration = recentData.every(d => d.acceleration > 1.5 && d.isMoving);
+                    const isAccelerating = this.velocity > 2.0; // 2 m/s = ~7 km/h
+                    
+                    // Check for sustained acceleration over longer period (0.5 seconds)
+                    const longerBuffer = this.launchAccelerationBuffer.filter(
+                        data => data.timestamp > timeElapsed - 0.5
+                    );
+                    const sustainedLaunch = longerBuffer.length >= 25 && // 0.5 seconds at 50Hz minimum
+                        longerBuffer.filter(d => d.acceleration > 1.0 && d.isMoving).length >= longerBuffer.length * 0.8;
+                    
+                    if (sustainedAcceleration && isAccelerating && sustainedLaunch) {
+                        this.launchDetected = true;
+                        this.launchTime = performance.now();
+                        this.prelaunchTime = timeElapsed; // Store how much time passed before launch
+                        
+                        // Update run status to show launch detected
+                        this.elements.runStatus.textContent = 'Status: Launch Detected!';
+                        console.log(`Launch detected at ${timeElapsed.toFixed(2)}s after run start`);
+                    }
+                }
+            }
+
+            checkSpeedMetric(id, currentSpeed, targetSpeed, fromSpeed = 0) {
+                const metric = this.metricDefinitions.speed.find(m => m.id === id);
+                const achievement = this.runAchievements.speedTargets[id];
+                
+                if (metric && achievement && !achievement.achieved && currentSpeed >= targetSpeed) {
+                    // Use launch time for timing calculations if launch was detected
+                    let timeElapsed;
+                    if (this.launchDetected && this.launchTime) {
+                        timeElapsed = (performance.now() - this.launchTime) / 1000;
+                    } else {
+                        // Fallback to run start time if no launch detected
+                        timeElapsed = (performance.now() - this.runStartTime) / 1000;
+                    }
+                    const timeValue = timeElapsed.toFixed(2);
+                    
+                    // Mark as achieved for this run
+                    achievement.achieved = true;
+                    
+                    // Add to history
+                    const historyEntry = {
+                        time: parseFloat(timeValue),
+                        timeString: `${timeValue}s`,
+                        timestamp: new Date().toISOString(),
+                        dateString: new Date().toLocaleString()
+                    };
+                    
+                    metric.history.push(historyEntry);
+                    metric.recent = historyEntry.timeString;
+                    
+                    // Update best time
+                    const sortedHistory = [...metric.history].sort((a, b) => a.time - b.time);
+                    metric.best = sortedHistory[0].timeString;
+                    
+                    // Save to localStorage
+                    this.saveMetricHistory();
+                    
+                    // Audio feedback
+                    this.playTone(800, 200);
+                }
+            }
+
+            checkDistanceMetric(id, currentDistance, targetDistance, timeElapsedFromRunStart) {
+                const metric = this.metricDefinitions.distance.find(m => m.id === id);
+                
+                // Track if this distance was achieved in current run
+                if (!this.runDistanceAchievements) {
+                    this.runDistanceAchievements = {};
+                }
+                
+                if (metric && currentDistance >= targetDistance && !this.runDistanceAchievements[id]) {
+                    const speed = this.isMetric ? this.velocity * 3.6 : this.velocity * 2.237;
+                    const unit = this.isMetric ? 'km/h' : 'mph';
+                    
+                    // Use launch time for timing calculations if launch was detected
+                    let timeElapsed;
+                    if (this.launchDetected && this.launchTime) {
+                        timeElapsed = (performance.now() - this.launchTime) / 1000;
+                    } else {
+                        // Fallback to run start time if no launch detected
+                        timeElapsed = timeElapsedFromRunStart;
+                    }
+                    const timeValue = timeElapsed.toFixed(2);
+                    
+                    // Add to history
+                    const historyEntry = {
+                        time: parseFloat(timeValue),
+                        timeString: `${timeValue}s @ ${speed.toFixed(1)}${unit}`,
+                        timestamp: new Date().toISOString(),
+                        dateString: new Date().toLocaleString()
+                    };
+                    
+                    metric.history.push(historyEntry);
+                    metric.recent = historyEntry.timeString;
+                    
+                    // Update best time (fastest time)
+                    const sortedHistory = [...metric.history].sort((a, b) => a.time - b.time);
+                    metric.best = sortedHistory[0].timeString;
+                    
+                    // Save to localStorage
+                    this.saveMetricHistory();
+                    
+                    // Audio feedback
+                    this.playTone(1000, 300);
+                    
+                    // Mark as achieved for this run
+                    this.runDistanceAchievements[id] = true;
+                }
+            }
+
+            playTone(frequency, duration) {
+                if ('AudioContext' in window || 'webkitAudioContext' in window) {
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.value = frequency;
+                    oscillator.type = 'sine';
+                    
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + duration / 1000);
+                }
+            }
+
+            loadMetricHistory() {
+                try {
+                    const saved = localStorage.getItem('dragRacingMetricHistory');
+                    if (saved) {
+                        const data = JSON.parse(saved);
+                        
+                        // Load speed metrics
+                        data.speed?.forEach(savedMetric => {
+                            const metric = this.metricDefinitions.speed.find(m => m.id === savedMetric.id);
+                            if (metric) {
+                                metric.history = savedMetric.history || [];
+                                metric.recent = savedMetric.recent;
+                                metric.best = savedMetric.best;
+                            }
+                        });
+                        
+                        // Load distance metrics
+                        data.distance?.forEach(savedMetric => {
+                            const metric = this.metricDefinitions.distance.find(m => m.id === savedMetric.id);
+                            if (metric) {
+                                metric.history = savedMetric.history || [];
+                                metric.recent = savedMetric.recent;
+                                metric.best = savedMetric.best;
+                            }
+                        });
+                    }
+                } catch (error) {
+                    console.warn('Error loading metric history:', error);
+                }
+            }
+
+            saveMetricHistory() {
+                try {
+                    const data = {
+                        speed: this.metricDefinitions.speed.map(m => ({
+                            id: m.id,
+                            history: m.history,
+                            recent: m.recent,
+                            best: m.best
+                        })),
+                        distance: this.metricDefinitions.distance.map(m => ({
+                            id: m.id,
+                            history: m.history,
+                            recent: m.recent,
+                            best: m.best
+                        }))
+                    };
+                    
+                    localStorage.setItem('dragRacingMetricHistory', JSON.stringify(data));
+                } catch (error) {
+                    console.warn('Error saving metric history:', error);
+                }
+            }
+
+            showHistoryModal(metricId) {
+                const allMetrics = [...this.metricDefinitions.speed, ...this.metricDefinitions.distance];
+                const metric = allMetrics.find(m => m.id === metricId);
+                
+                if (!metric || !metric.history.length) {
+                    // Silently do nothing if no history available
+                    return;
+                }
+                
+                // Sort history by time (fastest first)
+                const sortedHistory = [...metric.history].sort((a, b) => a.time - b.time);
+                
+                // Update modal content
+                document.getElementById('historyHeader').textContent = `${metric.label} History`;
+                
+                const tbody = document.getElementById('historyTableBody');
+                tbody.innerHTML = sortedHistory.map((entry, index) => `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${entry.timeString}</td>
+                        <td>${entry.dateString}</td>
+                    </tr>
+                `).join('');
+                
+                document.getElementById('historyModal').classList.remove('hidden');
+            }
+
+            closeHistoryModal() {
+                document.getElementById('historyModal').classList.add('hidden');
+            }
+
+            showResetConfirmation() {
+                document.getElementById('confirmModal').classList.remove('hidden');
+            }
+
+            closeConfirmModal() {
+                document.getElementById('confirmModal').classList.add('hidden');
+            }
+
+            confirmReset() {
+                // Clear all metric history
+                this.metricDefinitions.speed.forEach(metric => {
+                    metric.recent = null;
+                    metric.best = null;
+                    metric.history = [];
+                });
+                this.metricDefinitions.distance.forEach(metric => {
+                    metric.recent = null;
+                    metric.best = null;
+                    metric.history = [];
+                });
+
+                // Clear localStorage
+                localStorage.removeItem('dragRacingMetricHistory');
+                localStorage.removeItem('dragRacingRuns');
+                localStorage.removeItem('dragRacingBrowserOptimal');
+
+                // Stop any running session
+                if (this.isRunning) {
+                    this.stopRun();
+                }
+                
+                // Reset button states
+                this.elements.startBtn.classList.remove('hidden');
+                this.elements.stopBtn.classList.add('hidden');
+
+                // Reset all runtime variables
+                this.velocity = 0;
+                this.distance = 0;
+                this.chartData = [];
+                this.accelerationBuffer = [];
+                this.velocityBuffer = [];
+                this.isMoving = false;
+                this.stationaryTime = 0;
+                this.lastValidAcceleration = 0;
+                this.runDistanceAchievements = {};
+
+                // Reset speed sign display
+                const speedUnit = this.isMetric ? 'km/h' : 'mph';
+                this.elements.speedValue.textContent = '0';
+                this.elements.speedUnit.textContent = speedUnit;
+                this.elements.currentSpeed.classList.remove('moving');
+
+                // Update chart and metrics display
+                this.updateChart();
+                this.renderMetrics();
+
+                // Close confirmation modal
+                this.closeConfirmModal();
+            }
+
+            toggleUnits() {
+                this.isMetric = !this.isMetric;
+                this.elements.unitToggle.textContent = this.isMetric ? 'Switch to Miles' : 'Switch to Kilometers';
+                
+                // Update speed sign with new units
+                const speedUnit = this.isMetric ? 'km/h' : 'mph';
+                const currentSpeedValue = this.isRunning ? 
+                    (this.isMetric ? this.velocity * 3.6 : this.velocity * 2.237) : 0;
+                
+                this.elements.speedValue.textContent = Math.round(currentSpeedValue);
+                this.elements.speedUnit.textContent = speedUnit;
+                
+                this.renderMetrics();
+            }
+
+                        renderMetrics() {
+                const visibleMetrics = [...this.metricDefinitions.speed, ...this.metricDefinitions.distance]
+                    .filter(metric => {
+                        if (metric.conditional && !metric.recent) {
+                            // Only show conditional metrics if they have been achieved at least once
+                            return false;
+                        }
+                        
+                        // Filter by unit system
+                        if (this.isMetric) {
+                            return !metric.label.includes('mph') && !metric.label.includes('mile');
+                        } else {
+                            return !metric.label.includes('km/h') && !metric.label.includes('1000m');
+                        }
+                    });
+
+                this.elements.metricsGrid.innerHTML = visibleMetrics.map(metric => {
+                    const hasHistory = metric.history && metric.history.length > 0;
+                    const clickHandler = hasHistory ? `onclick="tracker.showHistoryModal('${metric.id}')"` : '';
+                    const clickableClass = hasHistory ? 'clickable' : 'not-clickable';
+                    
+                    return `
+                        <div class="metric-card ${metric.recent ? 'achieved' : ''} ${clickableClass}" ${clickHandler}>
+                            <div class="metric-label">${metric.label}</div>
+                            <div class="metric-recent">${metric.recent || '---'}</div>
+                            ${metric.best ? `<div class="metric-best">Best: ${metric.best}</div>` : '<div class="metric-best">No best time yet</div>'}
+                        </div>
+                    `;
+                }).join('');
+            }
+
+
+
+
+
+            initChart() {
+                this.ctx = this.elements.chart.getContext('2d');
+                // Delay resize to ensure element is rendered
+                setTimeout(() => {
+                    this.resizeChart();
+                }, 100);
+                window.addEventListener('resize', () => this.resizeChart());
+            }
+
+            resizeChart() {
+                const rect = this.elements.chart.parentElement.getBoundingClientRect();
+                this.elements.chart.width = rect.width - 4; // Account for border
+                this.elements.chart.height = rect.height - 4; // Account for border
+                this.updateChart(); // Redraw chart after resize
+            }
+
+            updateChart() {
+                if (!this.ctx) return;
+
+                const canvas = this.elements.chart;
+                const ctx = this.ctx;
+                
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Define chart area first (accounting for axis labels)
+                const chartArea = {
+                    left: 10,
+                    right: canvas.width - 40,
+                    top: 30,
+                    bottom: canvas.height - 40
+                };
+                const chartWidth = chartArea.right - chartArea.left;
+                const chartHeight = chartArea.bottom - chartArea.top;
+
+                // Find max speed for scaling (do this before drawing anything)
+                let maxSpeed = 50; // Minimum scale
+                let minTime = 0;
+                let maxTime = 1;
+                let timeRange = 1;
+                
+                if (this.chartData.length > 0) {
+                    maxSpeed = Math.max(...this.chartData.map(d => d.speed), 50);
+                    minTime = Math.min(...this.chartData.map(d => d.time));
+                    maxTime = Math.max(...this.chartData.map(d => d.time));
+                    timeRange = Math.max(maxTime - minTime, 1);
+                }
+
+                // Draw background grid
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 0.5;
+                
+                // Vertical grid lines
+                for (let i = 1; i < 6; i++) {
+                    const x = chartArea.left + (chartWidth / 6) * i;
+                    ctx.beginPath();
+                    ctx.moveTo(x, chartArea.top);
+                    ctx.lineTo(x, chartArea.bottom);
+                    ctx.stroke();
+                }
+                
+                // Horizontal grid lines  
+                for (let i = 1; i < 5; i++) {
+                    const y = chartArea.top + (chartHeight / 5) * i;
+                    ctx.beginPath();
+                    ctx.moveTo(chartArea.left, y);
+                    ctx.lineTo(chartArea.right, y);
+                    ctx.stroke();
+                }
+
+                // Draw axis labels and values FIRST (so they're always visible)
+                ctx.fillStyle = '#ccc';
+                ctx.font = '12px Arial';
+                
+                // Y-axis labels (speed) on the right side
+                const speedSteps = 5;
+                for (let i = 0; i <= speedSteps; i++) {
+                    const speedValue = (maxSpeed / speedSteps) * i;
+                    const y = chartArea.bottom - (i / speedSteps) * chartHeight;
+                    
+                    // Speed value on right
+                    ctx.textAlign = 'left';
+                    ctx.fillText(`${speedValue.toFixed(0)}`, chartArea.right + 5, y + 4);
+                }
+                
+                // Y-axis label (speed unit) on right
+                ctx.fillStyle = '#fff';
+                ctx.font = '13px Arial';
+                ctx.textAlign = 'center';
+                ctx.save();
+                ctx.translate(canvas.width - 10, chartArea.top + chartHeight / 2);
+                ctx.rotate(-Math.PI / 2);
+                ctx.fillText(`Speed (${this.isMetric ? 'km/h' : 'mph'})`, 0, 0);
+                ctx.restore();
+                
+                // X-axis labels (time - seconds ago) on bottom
+                ctx.fillStyle = '#ccc';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                
+                const timeSteps = 6;
+                for (let i = 0; i <= timeSteps; i++) {
+                    const timeValue = (timeRange / timeSteps) * i;
+                    const secondsAgo = timeRange - timeValue;
+                    const x = chartArea.left + (i / timeSteps) * chartWidth;
+                    
+                    // Time value on bottom
+                    ctx.fillText(`${secondsAgo.toFixed(0)}s`, x, chartArea.bottom + 15);
+                }
+                
+                // X-axis label (seconds ago) on bottom
+                ctx.fillStyle = '#fff';
+                ctx.font = '13px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Seconds Ago', chartArea.left + chartWidth / 2, canvas.height - 8);
+                
+                // Legend at top
+                ctx.textAlign = 'left';
+                ctx.fillStyle = '#ff6b35';
+                ctx.font = '12px Arial';
+                ctx.fillText('■ Accelerometer', chartArea.left, 20);
+                
+                // Draw data lines (if we have data)
+                if (this.chartData.length >= 1) {
+                    // Draw accelerometer speed line
+                    ctx.strokeStyle = '#ff6b35';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    
+                    this.chartData.forEach((point, index) => {
+                        const x = chartArea.left + ((point.time - minTime) / timeRange) * chartWidth;
+                        const y = chartArea.bottom - (point.speed / maxSpeed) * chartHeight;
+                        
+                        if (index === 0) {
+                            ctx.moveTo(x, y);
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                    });
+                    
+                    ctx.stroke();
+
+                    // Draw GPS speed line (if available)
+                    const gpsData = this.chartData.filter(d => d.gpsSpeed !== null);
+                    if (gpsData.length > 1) {
+                        ctx.strokeStyle = '#00ff00';
+                        ctx.lineWidth = 2;
+                        ctx.setLineDash([5, 5]); // Dashed line for GPS
+                        ctx.beginPath();
+                        
+                        gpsData.forEach((point, index) => {
+                            const x = chartArea.left + ((point.time - minTime) / timeRange) * chartWidth;
+                            const y = chartArea.bottom - (point.gpsSpeed / maxSpeed) * chartHeight;
+                            
+                            if (index === 0) {
+                                ctx.moveTo(x, y);
+                            } else {
+                                ctx.lineTo(x, y);
+                            }
+                        });
+                        
+                        ctx.stroke();
+                        ctx.setLineDash([]); // Reset to solid line
+                        
+                        // GPS legend
+                        ctx.fillStyle = '#00ff00';
+                        ctx.font = '12px Arial';
+                        ctx.fillText('■ GPS', chartArea.left + 100, 20);
+                    }
+                }
+            }
+
+            saveRun() {
+                const runs = JSON.parse(localStorage.getItem('dragRacingRuns') || '[]');
+                const runData = {
+                    timestamp: new Date().toISOString(),
+                    metrics: JSON.parse(JSON.stringify(this.metricDefinitions)),
+                    chartData: [...this.chartData]
+                };
+                
+                runs.unshift(runData);
+                if (runs.length > 10) runs.pop(); // Keep only last 10 runs
+                
+                localStorage.setItem('dragRacingRuns', JSON.stringify(runs));
+            }
+
+            initPermissionWarning() {
+                this.detectDeviceAndUpdateWarning();
+                
+                // Initial check - will be updated by async detection methods
+                this.checkPermissions();
+                
+                // Check permissions periodically
+                setInterval(() => {
+                    this.checkPermissions();
+                }, 5000);
+            }
+
+            detectDeviceAndUpdateWarning() {
+                const userAgent = navigator.userAgent.toLowerCase();
+                const isIOS = /iphone|ipad|ipod/.test(userAgent);
+                const isAndroid = /android/.test(userAgent);
+                
+                let links = '';
+                
+                if (isIOS) {
+                    links = `
+                        <a href="https://support.apple.com/en-us/102207" target="_blank" class="permission-link">
+                            How to enable Location Services on iPhone
+                        </a>
+                        <a href="https://support.apple.com/guide/iphone/control-access-to-motion-fitness-activity-iph8dd3c6ea5/ios" target="_blank" class="permission-link">
+                            How to enable Motion & Fitness on iPhone
+                        </a>
+                    `;
+                } else if (isAndroid) {
+                    links = `
+                        <a href="https://support.google.com/accounts/answer/3467281" target="_blank" class="permission-link">
+                            How to enable Location Services on Android
+                        </a>
+                        <a href="https://support.google.com/chrome/answer/114662" target="_blank" class="permission-link">
+                            How to manage site permissions in Chrome
+                        </a>
+                    `;
+                } else {
+                    links = `
+                        <a href="https://support.google.com/chrome/answer/114662" target="_blank" class="permission-link">
+                            How to manage site permissions in your browser
+                        </a>
+                    `;
+                }
+                
+                this.elements.permissionLinks.innerHTML = links;
+            }
+
+            checkPermissions() {
+                const hasLocation = this.gpsPermissionGranted;
+                // Check if device motion is available and permission is granted
+                // Don't require calibration for permission status, only availability
+                const hasMotion = this.hasPermission || this.isDeviceMotionAvailable();
+                
+                // Update Device Motion sensor status
+                if (hasMotion) {
+                    this.elements.sensorStatus.classList.remove('missing');
+                    this.elements.sensorStatus.classList.add('connected');
+                    this.elements.sensorStatus.textContent = 'Device Motion: Connected';
+                } else {
+                    this.elements.sensorStatus.classList.add('missing');
+                    this.elements.sensorStatus.classList.remove('connected');
+                    this.elements.sensorStatus.textContent = 'Device Motion: Click to Enable';
+                }
+                
+                // Update GPS status
+                if (hasLocation) {
+                    this.elements.gpsStatus.classList.remove('missing');
+                    this.elements.gpsStatus.classList.add('connected');
+                    this.elements.gpsStatus.textContent = 'GPS: Connected';
+                } else {
+                    this.elements.gpsStatus.classList.add('missing');
+                    this.elements.gpsStatus.classList.remove('connected');
+                    this.elements.gpsStatus.textContent = 'GPS: Click to Enable';
+                }
+                
+                // Hide warning when BOTH permissions are granted, show when either is missing
+                if (hasLocation && hasMotion) {
+                    this.elements.permissionsWarning.classList.add('hidden');
+                } else {
+                    this.elements.permissionsWarning.classList.remove('hidden');
+                    
+                    let missingPermissions = [];
+                    if (!hasLocation) missingPermissions.push('GPS');
+                    if (!hasMotion) missingPermissions.push('Device Motion');
+                    
+                    const warningText = `For best accuracy, enable ${missingPermissions.join(' and ')}. Without these, measurements may be significantly less accurate.`;
+                    this.elements.permissionsWarning.querySelector('.warning-content').textContent = warningText;
+                }
+            }
+
+            async handleSensorClick() {
+                if (this.isDeviceMotionAvailable()) return; // Already have permission
+                
+                try {
+                    // Try to request permission
+                    if ('DeviceMotionEvent' in window && typeof DeviceMotionEvent.requestPermission === 'function') {
+                        const permission = await DeviceMotionEvent.requestPermission();
+                        if (permission === 'granted') {
+                            this.hasPermission = true;
+                            this.initSensors();
+                            return;
+                        }
+                    } else if ('DeviceMotionEvent' in window) {
+                        // Android doesn't require explicit permission request
+                        this.hasPermission = true;
+                        this.initSensors();
+                        return;
+                    }
+                } catch (error) {
+                    console.log('Permission request failed:', error);
+                }
+                
+                // If we reach here, show instruction modal
+                this.showMotionInstructions();
+            }
+
+            async handleGpsClick() {
+                if (this.gpsPermissionGranted) return; // Already have permission
+                
+                try {
+                    // Try to request GPS permission
+                    const position = await new Promise((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject, {
+                            timeout: 5000,
+                            enableHighAccuracy: true
+                        });
+                    });
+                    
+                    this.gpsPermissionGranted = true;
+                    this.gpsPermissionRequested = true;
+                    this.checkPermissions();
+                    return;
+                } catch (error) {
+                    console.log('GPS permission request failed:', error);
+                }
+                
+                // If we reach here, show instruction modal
+                this.showGpsInstructions();
+            }
+
+            showMotionInstructions() {
+                const userAgent = navigator.userAgent.toLowerCase();
+                const isIOS = /iphone|ipad|ipod/.test(userAgent);
+                
+                if (isIOS) {
+                    document.getElementById('iosMotionModal').classList.remove('hidden');
+                } else {
+                    document.getElementById('androidMotionModal').classList.remove('hidden');
+                }
+            }
+
+            showGpsInstructions() {
+                const userAgent = navigator.userAgent.toLowerCase();
+                const isIOS = /iphone|ipad|ipod/.test(userAgent);
+                
+                if (isIOS) {
+                    document.getElementById('iosGpsModal').classList.remove('hidden');
+                } else {
+                    document.getElementById('androidGpsModal').classList.remove('hidden');
+                }
+            }
+
+            closeInstructionModal() {
+                document.getElementById('iosMotionModal').classList.add('hidden');
+                document.getElementById('androidMotionModal').classList.add('hidden');
+                document.getElementById('iosGpsModal').classList.add('hidden');
+                document.getElementById('androidGpsModal').classList.add('hidden');
+            }
+
+            isDeviceMotionAvailable() {
+                // Check if DeviceMotionEvent is supported
+                if (!('DeviceMotionEvent' in window)) {
+                    return false;
+                }
+                
+                // For iOS, check if permission is required and granted
+                if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                    // iOS requires permission, check if we have it
+                    return this.hasPermission;
+                } else {
+                    // Android/other platforms - if DeviceMotionEvent exists, it's available
+                    return true;
+                }
+            }
+
+            async initDeviceMotionDetection() {
+                if (!('DeviceMotionEvent' in window)) {
+                    console.log('Device motion not supported');
+                    this.hasPermission = false;
+                    return;
+                }
+
+                if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                    // iOS - check current permission status without requesting
+                    try {
+                        // Unfortunately, iOS doesn't provide a way to check permission status
+                        // without triggering the permission request, so we assume it's not granted
+                        console.log('Device motion requires permission (iOS)');
+                        this.hasPermission = false;
+                    } catch (error) {
+                        console.log('Device motion permission check failed:', error);
+                        this.hasPermission = false;
+                    }
+                } else {
+                    // Android/other platforms - device motion is available without explicit permission
+                    this.hasPermission = true;
+                    console.log('Device motion available (Android/other platform)');
+                }
+
+                // Update display immediately after detection
+                this.checkPermissions();
+            }
+
+            initGPSDetection() {
+                // Check if geolocation is supported
+                if (!('geolocation' in navigator)) {
+                    console.log('GPS not supported');
+                    return;
+                }
+
+                // Try to detect if GPS permission was previously granted
+                // by attempting to get current position with no timeout
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        // Success - GPS permission already granted
+                        this.gpsPermissionGranted = true;
+                        this.gpsPermissionRequested = true;
+                        console.log('GPS permission already granted');
+                        this.initGPS();
+                        // Update display after detection
+                        this.checkPermissions();
+                    },
+                    (error) => {
+                        // Error - permission likely not granted or GPS unavailable
+                        console.log('GPS permission not granted or unavailable:', error.code);
+                        this.gpsPermissionGranted = false;
+                        this.gpsPermissionRequested = false;
+                        // Update display after detection
+                        this.checkPermissions();
+                    },
+                    {
+                        timeout: 1000, // Very short timeout to avoid hanging
+                        enableHighAccuracy: false, // Faster response
+                        maximumAge: 300000 // Accept cached position up to 5 minutes old
+                    }
+                );
+            }
+        }
+
+        // Initialize app when page loads
+        let tracker;
+        document.addEventListener('DOMContentLoaded', () => {
+            tracker = new DragRacingTracker();
+            window.tracker = tracker; // Make globally accessible for onclick handlers
+        });
+    </script>
+    </body>
+    </html>
+    
