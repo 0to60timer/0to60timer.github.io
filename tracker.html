@@ -76,7 +76,7 @@
     .header-right {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.75rem;
     }
 
     .logo {
@@ -113,6 +113,8 @@
       font-weight: 700;
       cursor: pointer;
       display: none;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
 
     .header-stop-btn.active {
@@ -132,6 +134,8 @@
       font-size: 0.9rem;
       font-weight: 700;
       cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
 
     .header-start-btn:active {
@@ -153,6 +157,7 @@
       justify-content: center;
       width: 36px;
       height: 36px;
+      flex-shrink: 0; /* Prevent settings button from shrinking */
     }
 
     .settings-button svg {
@@ -384,11 +389,12 @@
     .modal-content {
       background: #1A1A1A;
       border-radius: 20px;
-      padding: 2rem;
       width: 90%;
       max-width: 400px;
       max-height: 80vh;
       overflow-y: auto;
+      display: flex;
+      flex-direction: column;
     }
 
     body.light-mode .modal-content {
@@ -400,7 +406,22 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 2rem;
+      padding: 2rem 2rem 1rem 2rem;
+      position: sticky;
+      top: 0;
+      background: #1A1A1A;
+      z-index: 10;
+      border-radius: 20px 20px 0 0;
+    }
+
+    body.light-mode .modal-header {
+      background: #FFFFFF;
+    }
+
+    .modal-body {
+      padding: 0 2rem 2rem 2rem;
+      overflow-y: auto;
+      flex: 1;
     }
 
     .modal-title {
@@ -841,10 +862,10 @@
     <div class="header-left">
       <div class="logo">0to60Timer.com</div>
       <div class="recording-indicator" id="recordingIndicator"></div>
-      <button class="header-start-btn" id="headerStartBtn">Start Run</button>
-      <button class="header-stop-btn" id="headerStopBtn">Stop Run</button>
     </div>
     <div class="header-right">
+      <button class="header-start-btn" id="headerStartBtn">Start Run</button>
+      <button class="header-stop-btn" id="headerStopBtn">Stop Run</button>
       <button class="settings-button" id="settingsButton">
         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
@@ -894,41 +915,44 @@
         <button class="modal-close" id="closeSettings">×</button>
       </div>
 
-      <div class="modal-section">
-        <h3>Display</h3>
-        <div class="setting-item">
-          <span class="setting-label">Dark Mode</span>
-          <div class="toggle-switch active" id="darkModeToggle">
-            <div class="toggle-knob"></div>
+      <div class="modal-body">
+        <div class="modal-section">
+          <h3>Display</h3>
+          <div class="setting-item">
+            <span class="setting-label">Dark Mode</span>
+            <div class="toggle-switch active" id="darkModeToggle">
+              <div class="toggle-knob"></div>
+            </div>
+          </div>
+          <div class="setting-item">
+            <span class="setting-label">Metric Units (km/h)</span>
+            <div class="toggle-switch" id="metricToggle">
+              <div class="toggle-knob"></div>
+            </div>
           </div>
         </div>
-        <div class="setting-item">
-          <span class="setting-label">Metric Units (km/h)</span>
-          <div class="toggle-switch" id="metricToggle">
-            <div class="toggle-knob"></div>
+
+        <div class="modal-section">
+          <h3>Visible Metrics</h3>
+          <div class="metric-selection" id="metricSelection">
+            <!-- Populated by JavaScript -->
           </div>
         </div>
-      </div>
 
-      <div class="modal-section">
-        <h3>Visible Metrics</h3>
-        <div class="metric-selection" id="metricSelection">
-          <!-- Populated by JavaScript -->
+        <div class="modal-section">
+          <h3>Navigation</h3>
+          <div class="nav-links">
+            <a href="index.html" class="nav-link">← Back to Home</a>
+            <a href="access.html" class="nav-link">Sensor Setup</a>
+          </div>
+        </div>
+
+        <div class="modal-section">
+          <h3>Data</h3>
+          <button class="control-button btn-reset" id="resetBtn" style="width: 100%;">Reset All Data</button>
         </div>
       </div>
-
-      <div class="modal-section">
-        <h3>Data</h3>
-        <button class="control-button btn-reset" id="resetBtn" style="width: 100%;">Reset All Data</button>
-      </div>
-
-      <div class="modal-section">
-        <h3>Navigation</h3>
-        <div class="nav-links">
-          <a href="index.html" class="nav-link">← Back to Home</a>
-          <a href="access.html" class="nav-link">Sensor Setup</a>
-        </div>
-      </div>
+      
     </div>
   </div>
 

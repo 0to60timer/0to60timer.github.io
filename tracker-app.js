@@ -35,6 +35,7 @@ class SpeedTracker {
     this.gpsSpeed = 0;
     this.gpsLastUpdate = 0;
     this.gpsAvailable = false;
+    this.gpsWatchId = null;
     this.lastGpsPosition = null;
     this.velocityConfidence = 0;
     
@@ -185,19 +186,14 @@ class SpeedTracker {
       if (typeof DeviceMotionEvent.requestPermission === 'function') {
         // iOS - will request on first run
       } else {
-        // Android
+        // Android - set up passive listener
         window.addEventListener('devicemotion', (event) => this.handleDeviceMotion(event));
       }
     }
     
-    // GPS
-    if ('geolocation' in navigator) {
-      navigator.geolocation.watchPosition(
-        (position) => this.handleGPSUpdate(position),
-        (error) => console.warn('GPS error:', error),
-        { enableHighAccuracy: true, maximumAge: 1000, timeout: 5000 }
-      );
-    }
+    // GPS - Don't request permission here, just check if it's available
+    // Actual GPS watching will start when the run starts
+    this.gpsAvailable = 'geolocation' in navigator;
   }
 
   async startRun() {
@@ -219,6 +215,15 @@ class SpeedTracker {
     // Don't start again if already running
     if (this.isRunning) {
       return;
+    }
+    
+    // Start GPS watching if available
+    if (this.gpsAvailable && !this.gpsWatchId) {
+      this.gpsWatchId = navigator.geolocation.watchPosition(
+        (position) => this.handleGPSUpdate(position),
+        (error) => console.warn('GPS error:', error),
+        { enableHighAccuracy: true, maximumAge: 1000, timeout: 5000 }
+      );
     }
     
     // Start calibration
@@ -261,6 +266,12 @@ class SpeedTracker {
     this.elements.headerStartBtn.classList.remove('hidden');
     this.elements.headerStopBtn.classList.remove('active');
     this.elements.recordingIndicator.classList.remove('active');
+    
+    // Stop GPS watching to save battery
+    if (this.gpsWatchId) {
+      navigator.geolocation.clearWatch(this.gpsWatchId);
+      this.gpsWatchId = null;
+    }
     
     this.saveRun();
   }
@@ -469,9 +480,22 @@ class SpeedTracker {
     if (!this.runStartTime) return;
     
     const timeElapsed = (sensorData.timestamp - this.runStartTime) / 1000;
-    const dt = timeElapsed - this.lastTimestamp;
+    let dt = timeElapsed - this.lastTimestamp;
     
     if (dt <= 0) return;
+    
+    // Cap dt to prevent huge velocity spikes after screen wake
+    // If dt > 0.5 seconds, the app was likely backgrounded/screen locked
+    if (dt > 0.5) {
+      console.warn(`Large dt detected (${dt.toFixed(2)}s), likely from screen lock. Resetting velocity.`);
+      this.velocity = 0;
+      this.velocityBuffer = [];
+      this.lastTimestamp = timeElapsed;
+      return; // Skip this update entirely
+    }
+    
+    // Additional sanity check for reasonable dt
+    dt = Math.min(dt, 0.1); // Cap at 100ms to prevent spikes
     
     const acceleration = sensorData.filteredMagnitude || 0;
     
@@ -778,19 +802,19 @@ class SpeedTracker {
     
     const visibleMetrics = [...this.metricDefinitions.speed, ...this.metricDefinitions.distance]
       .filter(metric => {
-        // Filter by conditional (only show if achieved at least once)
-        if (metric.conditional && !metric.recent) {
-          return false;
-        }
-        
-        // Filter by unit system
+        // Filter by unit system first
         const isMetricUnit = metric.label.includes('km/h') || metric.label.includes('1000m');
         if (this.isMetric !== isMetricUnit) {
           return false;
         }
         
-        // Filter by user selection (if they've made selections)
-        if (currentVisibleMetrics && !currentVisibleMetrics.includes(metric.id)) {
+        // If user has made selections, respect them
+        if (currentVisibleMetrics && currentVisibleMetrics.length > 0) {
+          return currentVisibleMetrics.includes(metric.id);
+        }
+        
+        // Default behavior: show non-conditional metrics or achieved conditional metrics
+        if (metric.conditional && !metric.recent) {
           return false;
         }
         
@@ -987,7 +1011,7 @@ class SpeedTracker {
     
     // Draw speed line
     if (this.chartData.length >= 1) {
-      ctx.strokeStyle = '#6C8EAD';
+      ctx.strokeStyle = '#FF3B30'; // Red color
       ctx.lineWidth = 3;
       ctx.beginPath();
       

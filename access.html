@@ -314,8 +314,16 @@
       border-radius: 20px;
       padding: 3rem 2rem;
       text-align: center;
-      max-width: 350px;
+      max-width: 400px;
       color: white;
+    }
+
+    .success-content button:hover {
+      transform: scale(1.05);
+    }
+
+    .success-content button:active {
+      transform: scale(0.98);
     }
 
     .success-icon {
@@ -504,31 +512,33 @@
       <div class="sensor-status-section">
         <h2>Required Sensors</h2>
         <div class="sensors-grid">
-          <!-- Device Motion Sensor -->
-          <div class="sensor-card" id="motionCard">
-            <div class="sensor-info">
-              <h3>Device Motion (Accelerometer)</h3>
-              <p>Measures acceleration and movement for accurate speed tracking</p>
-              <div class="test-status" id="motionTest">Testing sensor...</div>
-            </div>
-            <div class="sensor-status">
-              <div class="status-indicator" id="motionIndicator">⏳</div>
-              <button class="request-button" id="motionButton">Request Access</button>
-            </div>
-          </div>
 
-          <!-- GPS/Location Sensor -->
-          <div class="sensor-card" id="gpsCard">
-            <div class="sensor-info">
-              <h3>GPS (Location)</h3>
-              <p>Provides location data for enhanced accuracy and validation</p>
-              <div class="test-status" id="gpsTest">Testing sensor...</div>
+            <!-- GPS/Location Sensor -->
+            <div class="sensor-card" id="gpsCard">
+                <div class="sensor-info">
+                <h3>GPS (Location)</h3>
+                <p>Provides location data for enhanced accuracy and validation</p>
+                <div class="test-status" id="gpsTest">Testing sensor...</div>
+                </div>
+                <div class="sensor-status">
+                <div class="status-indicator" id="gpsIndicator">⏳</div>
+                <button class="request-button" id="gpsButton">Request Access</button>
+                </div>
             </div>
-            <div class="sensor-status">
-              <div class="status-indicator" id="gpsIndicator">⏳</div>
-              <button class="request-button" id="gpsButton">Request Access</button>
+
+            <!-- Device Motion Sensor -->
+            <div class="sensor-card" id="motionCard">
+                <div class="sensor-info">
+                    <h3>Device Motion (Accelerometer)</h3>
+                    <p>Measures acceleration and movement for accurate speed tracking</p>
+                    <div class="test-status" id="motionTest">Testing sensor...</div>
+                </div>
+                <div class="sensor-status">
+                    <div class="status-indicator" id="motionIndicator">⏳</div>
+                    <button class="request-button" id="motionButton">Request Access</button>
+                </div>
             </div>
-          </div>
+
         </div>
       </div>
 
@@ -642,8 +652,31 @@
     <div class="success-content">
       <div class="success-icon">✓</div>
       <div class="success-title">Sensors Working!</div>
-      <div class="success-message">Redirecting to tracker...</div>
-      <div class="loading-spinner"></div>
+      <div class="success-message">Ready to start tracking your speed?</div>
+      <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center;">
+        <button id="continueToTracker" style="
+          background: white;
+          color: var(--success-color);
+          border: none;
+          padding: 1rem 2rem;
+          border-radius: 12px;
+          font-size: 1rem;
+          font-weight: 700;
+          cursor: pointer;
+          transition: transform 0.2s;
+        ">Continue to Tracker</button>
+        <button id="stayOnAccess" style="
+          background: transparent;
+          color: white;
+          border: 2px solid white;
+          padding: 1rem 2rem;
+          border-radius: 12px;
+          font-size: 1rem;
+          font-weight: 700;
+          cursor: pointer;
+          transition: transform 0.2s;
+        ">Stay Here</button>
+      </div>
     </div>
   </div>
 
@@ -895,15 +928,19 @@
       }
     }
 
-    // Show success overlay and redirect
+    // Show success overlay with confirmation
     function showSuccessAndRedirect() {
       const overlay = document.getElementById('successOverlay');
       overlay.classList.add('show');
       
-      // Redirect after 1 second
-      setTimeout(() => {
+      // Set up button handlers
+      document.getElementById('continueToTracker').addEventListener('click', () => {
         window.location.href = 'tracker.html';
-      }, 1000);
+      });
+      
+      document.getElementById('stayOnAccess').addEventListener('click', () => {
+        overlay.classList.remove('show');
+      });
     }
 
     // Start Button Click (manual navigation if user clicks before auto-redirect)
