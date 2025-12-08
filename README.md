@@ -1,1 +1,1 @@
-# 0to60tracker.com
+# 0to60tracker
