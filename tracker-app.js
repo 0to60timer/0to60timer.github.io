@@ -30,6 +30,7 @@ class SpeedTracker {
     this.isMoving = false;
     this.stationaryTime = 0;
     this.lastValidAcceleration = 0;
+    this.deviceMotionActive = false; // Track if device motion listener is active
     
     // GPS
     this.gpsSpeed = 0;
@@ -162,21 +163,22 @@ class SpeedTracker {
   }
 
   async autoStartRun() {
-    // Check sensor availability without requesting permissions
-    // Don't actually start the run - just set up passive listeners
+    // Auto-start tracking on page load
     try {
-      // For iOS, we can't check permission status without requesting it
-      // So we'll just wait for the user to click Start Run
+      // For iOS, we need user interaction to request device motion permission
+      // But GPS can start automatically if permission was already granted
       if ('DeviceMotionEvent' in window && typeof DeviceMotionEvent.requestPermission === 'function') {
-        console.log('iOS device detected, waiting for user to start run');
+        console.log('iOS device detected - GPS will start, motion requires button click');
+        // Start the run - GPS will begin, device motion will be requested on first user interaction
+        this.startRun();
         return;
       }
       
-      // For Android, device motion listener is already set up in initSensors()
-      // GPS will only start when user clicks Start Run
-      console.log('Sensors ready, waiting for user to start run');
+      // For Android, start the run immediately
+      console.log('Auto-starting run');
+      this.startRun();
     } catch (error) {
-      console.log('Sensor check failed:', error);
+      console.log('Auto-start failed:', error);
     }
   }
 
@@ -188,6 +190,7 @@ class SpeedTracker {
       } else {
         // Android - set up passive listener
         window.addEventListener('devicemotion', (event) => this.handleDeviceMotion(event));
+        this.deviceMotionActive = true;
       }
     }
     
@@ -246,27 +249,22 @@ class SpeedTracker {
     }
     
     // Request iOS permissions if needed and not already done
-    if (typeof DeviceMotionEvent.requestPermission === 'function') {
+    if (typeof DeviceMotionEvent.requestPermission === 'function' && !this.deviceMotionActive) {
       try {
         const permission = await DeviceMotionEvent.requestPermission();
         if (permission !== 'granted') {
-          alert('Motion permission required');
-          // Stop GPS if motion permission denied
-          if (this.gpsWatchId) {
-            navigator.geolocation.clearWatch(this.gpsWatchId);
-            this.gpsWatchId = null;
-          }
-          return;
+          console.log('Motion permission not granted - GPS tracking will continue');
+          // Don't stop GPS, just continue with GPS-only tracking
+          // User can click "Start Run" button to grant motion permission
+        } else {
+          window.addEventListener('devicemotion', (event) => this.handleDeviceMotion(event));
+          this.deviceMotionActive = true;
+          console.log('Device motion permission granted');
         }
-        window.addEventListener('devicemotion', (event) => this.handleDeviceMotion(event));
       } catch (error) {
-        alert('Unable to access sensors');
-        // Stop GPS if motion permission failed
-        if (this.gpsWatchId) {
-          navigator.geolocation.clearWatch(this.gpsWatchId);
-          this.gpsWatchId = null;
-        }
-        return;
+        // This will happen on auto-start since there's no user gesture
+        // Just continue with GPS tracking
+        console.log('Device motion permission requires user interaction - GPS tracking active');
       }
     }
     
