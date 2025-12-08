@@ -102,7 +102,8 @@ class SpeedTracker {
       speedValue: document.getElementById('speedValue'),
       speedUnit: document.getElementById('speedUnit'),
       speedSign: document.getElementById('speedSign'),
-      startBtn: document.getElementById('startBtn'),
+      startBtn: document.getElementById('startBtn'), // Legacy (hidden)
+      headerStartBtn: document.getElementById('headerStartBtn'),
       headerStopBtn: document.getElementById('headerStopBtn'),
       resetBtn: document.getElementById('resetBtn'),
       chart: document.getElementById('chart'),
@@ -132,7 +133,8 @@ class SpeedTracker {
     this.elements.speedUnit.textContent = this.isMetric ? 'km/h' : 'mph';
     
     // Event listeners
-    this.elements.startBtn.addEventListener('click', () => this.startRun());
+    this.elements.startBtn.addEventListener('click', () => this.startRun()); // Legacy
+    this.elements.headerStartBtn.addEventListener('click', () => this.startRun());
     this.elements.headerStopBtn.addEventListener('click', () => this.stopRun());
     this.elements.resetBtn.addEventListener('click', () => this.showResetConfirmation());
     this.elements.settingsButton.addEventListener('click', () => this.openSettings());
@@ -245,7 +247,8 @@ class SpeedTracker {
     this.runDistanceAchievements = {};
     
     // Update UI
-    this.elements.startBtn.classList.add('hidden');
+    this.elements.startBtn.classList.add('hidden'); // Legacy
+    this.elements.headerStartBtn.classList.add('hidden');
     this.elements.headerStopBtn.classList.add('active');
     this.elements.recordingIndicator.classList.add('active');
     
@@ -254,7 +257,8 @@ class SpeedTracker {
 
   stopRun() {
     this.isRunning = false;
-    this.elements.startBtn.classList.remove('hidden');
+    this.elements.startBtn.classList.remove('hidden'); // Legacy
+    this.elements.headerStartBtn.classList.remove('hidden');
     this.elements.headerStopBtn.classList.remove('active');
     this.elements.recordingIndicator.classList.remove('active');
     
@@ -376,18 +380,25 @@ class SpeedTracker {
       filteredMagnitude = trimmedData.reduce((sum, val) => sum + val, 0) / trimmedData.length;
     }
     
-    // Motion detection
-    if (!this.isMoving && filteredMagnitude > this.motionThreshold) {
+    // Enhanced motion detection with stricter threshold
+    if (!this.isMoving && filteredMagnitude > this.motionThreshold * 2) {
+      // Require stronger acceleration to consider moving
       this.isMoving = true;
       this.stationaryTime = 0;
-    } else if (this.isMoving && filteredMagnitude < this.motionThreshold * 0.5) {
+    } else if (this.isMoving && filteredMagnitude < this.motionThreshold * 0.3) {
+      // Lower threshold for stopping
       this.stationaryTime += 1;
-      if (this.stationaryTime > 100) {
+      if (this.stationaryTime > 50) { // Faster stop detection (0.5s at 100Hz)
         this.isMoving = false;
         if (this.isRunning) {
-          this.velocity *= 0.95;
+          this.velocity = 0; // Hard stop instead of decay
         }
       }
+    } else if (filteredMagnitude < this.motionThreshold * 0.5) {
+      // Even if "moving", very low acceleration should increase stationary count
+      this.stationaryTime += 1;
+    } else {
+      this.stationaryTime = 0; // Reset if we see real acceleration
     }
     
     this.lastValidAcceleration = filteredMagnitude;
@@ -490,19 +501,26 @@ class SpeedTracker {
       }
     } else if (!sensorData.isMoving) {
       if (gpsReliable && this.gpsSpeed < 1.0) {
-        this.velocity *= 0.5;
+        this.velocity = 0; // Hard zero when GPS confirms stopped
       } else {
-        this.velocity *= 0.85;
+        this.velocity *= 0.7; // Faster decay
       }
       
-      if (Math.abs(this.velocity) < 0.2) {
+      if (Math.abs(this.velocity) < 0.3) {
         this.velocity = 0;
       }
     }
     
-    // Drift correction
-    if (gpsReliable && this.gpsSpeed < 0.5 && Math.abs(this.velocity) > 2.0) {
-      this.velocity *= 0.3;
+    // Enhanced drift correction
+    if (gpsReliable && this.gpsSpeed < 0.5 && Math.abs(this.velocity) > 1.0) {
+      this.velocity = 0; // Hard correction for drift
+    }
+    
+    // Prevent unrealistic velocity (sanity check - max ~223 mph / 360 kph)
+    const maxRealisticSpeed = 100; // m/s
+    if (Math.abs(this.velocity) > maxRealisticSpeed) {
+      console.warn('Unrealistic velocity detected, resetting');
+      this.velocity = 0;
     }
     
     this.velocity = Math.max(0, this.velocity);
@@ -512,8 +530,8 @@ class SpeedTracker {
       this.detectLaunch(acceleration, sensorData.isMoving, timeElapsed);
     }
     
-    // Update distance
-    if (this.velocity > 0) {
+    // Update distance - only when velocity is above threshold
+    if (this.velocity > 0.5) {
       this.distance += this.velocity * dt;
     }
     
