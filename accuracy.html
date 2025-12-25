@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-90WH860WLK"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-90WH860WLK');
+  </script>
+  
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Primary Meta Tags -->
+  <title>Accuracy & Limitations - 0 to 60 Timer | 0to60timer.com</title>
+  <meta name="description" content="Learn about GPS accuracy, phone sensor limitations, and what affects 0-60 timer measurements. Understand how to get the most accurate results.">
+  <meta name="robots" content="index, follow">
+
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://0to60timer.com/accuracy.html">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://0to60timer.com/accuracy.html">
+  <meta property="og:title" content="Accuracy & Limitations - 0 to 60 Timer">
+  <meta property="og:description" content="Learn about GPS accuracy and limitations of phone-based timing.">
+  
+  <!-- Favicons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon.png">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --primary-color: #6C8EAD;
+      --primary-dark: #5A7694;
+      --primary-light: #8AA7C3;
+      --bg-dark: #0A0A0A;
+      --bg-light: #FFFFFF;
+      --text-dark: #1A1A1A;
+      --text-light: #FFFFFF;
+      --text-gray: #888888;
+      --border-color: #E0E0E0;
+      --success-color: #4CAF50;
+      --warning-color: #FF9800;
+      --info-color: #2196F3;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text-dark);
+      background: var(--bg-light);
+      line-height: 1.6;
+    }
+
+    /* Header */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .header-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--primary-color);
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+    }
+
+    .nav-links a {
+      color: var(--text-dark);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+
+    .nav-links a:hover {
+      color: var(--primary-color);
+    }
+
+    .cta-button {
+      background: var(--primary-color);
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    .cta-button:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    /* Main Content */
+    .main-content {
+      margin-top: 80px;
+      padding: 4rem 2rem;
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+
+    .page-header h1 {
+      font-size: 3rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+      color: var(--text-dark);
+    }
+
+    .page-header p {
+      font-size: 1.25rem;
+      color: var(--text-gray);
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .content-section {
+      margin-bottom: 4rem;
+    }
+
+    .content-section h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      color: var(--text-dark);
+    }
+
+    .content-section h3 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+      color: var(--text-dark);
+    }
+
+    .content-section p {
+      font-size: 1.1rem;
+      color: var(--text-gray);
+      margin-bottom: 1rem;
+      line-height: 1.8;
+    }
+
+    .content-section ul, .content-section ol {
+      margin-left: 2rem;
+      color: var(--text-gray);
+      font-size: 1.1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .content-section li {
+      margin-bottom: 0.5rem;
+    }
+
+    .info-box {
+      background: #E3F2FD;
+      border-left: 4px solid var(--info-color);
+      padding: 1.5rem;
+      margin: 2rem 0;
+      border-radius: 8px;
+    }
+
+    .info-box h3 {
+      margin-top: 0;
+      color: var(--info-color);
+    }
+
+    .warning-box {
+      background: #FFF3E0;
+      border-left: 4px solid var(--warning-color);
+      padding: 1.5rem;
+      margin: 2rem 0;
+      border-radius: 8px;
+    }
+
+    .warning-box h3 {
+      margin-top: 0;
+      color: var(--warning-color);
+    }
+
+    .success-box {
+      background: #E8F5E9;
+      border-left: 4px solid var(--success-color);
+      padding: 1.5rem;
+      margin: 2rem 0;
+      border-radius: 8px;
+    }
+
+    .success-box h3 {
+      margin-top: 0;
+      color: var(--success-color);
+    }
+
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 2rem 0;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .comparison-table th {
+      background: var(--primary-color);
+      color: white;
+      padding: 1rem;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .comparison-table td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .comparison-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .comparison-table tr:nth-child(even) {
+      background: #F5F8FA;
+    }
+
+    .cta-section {
+      background: var(--text-dark);
+      color: white;
+      padding: 3rem;
+      border-radius: 16px;
+      text-align: center;
+      margin-top: 4rem;
+    }
+
+    .cta-section h2 {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+    }
+
+    .cta-section p {
+      font-size: 1.1rem;
+      color: rgba(255, 255, 255, 0.8);
+      margin-bottom: 2rem;
+    }
+
+    .cta-section .cta-button {
+      font-size: 1.1rem;
+      padding: 1rem 2rem;
+    }
+
+    /* Footer */
+    .footer {
+      background: var(--bg-dark);
+      color: rgba(255, 255, 255, 0.7);
+      padding: 3rem 2rem 2rem;
+      text-align: center;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .footer-links a:hover {
+      color: var(--primary-color);
+    }
+
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+      }
+
+      .page-header h1 {
+        font-size: 2rem;
+      }
+
+      .comparison-table {
+        font-size: 0.9rem;
+      }
+
+      .comparison-table th, .comparison-table td {
+        padding: 0.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-container">
+      <a href="/" class="logo">0to60Timer.com</a>
+      <nav class="nav-links">
+        <a href="/">Home</a>
+        <a href="features.html">Features</a>
+        <a href="how-it-works.html">How It Works</a>
+        <a href="accuracy.html">Accuracy</a>
+        <a href="faq.html">FAQ</a>
+        <a href="access.html" class="cta-button">Get Started</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="page-header">
+      <h1>Accuracy & Limitations</h1>
+      <p>Understanding what affects measurement accuracy and how to get the best results</p>
+    </div>
+
+    <section class="content-section">
+      <h2>Expected Accuracy</h2>
+      <p>Our 0 to 60 timer provides results that are typically within <strong>±0.2-0.5 seconds</strong> of professional timing equipment under good conditions. This makes it suitable for personal performance tracking, comparing modifications, and general benchmarking.</p>
+
+      <div class="info-box">
+        <h3>Good Enough for Most Uses</h3>
+        <p>While not as precise as $500+ professional timing systems, phone-based timing is accurate enough for enthusiasts to track improvements, compare vehicles, and understand their car's performance. Most users find the convenience and zero cost make it an excellent choice for casual performance testing.</p>
+      </div>
+    </section>
+
+    <section class="content-section">
+      <h2>How We Compare to Professional Equipment</h2>
+      
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Typical Accuracy</th>
+            <th>Cost</th>
+            <th>Setup Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Professional Timing Lights</strong></td>
+            <td>±0.01 seconds</td>
+            <td>$500-$2,000</td>
+            <td>15-30 minutes</td>
+          </tr>
+          <tr>
+            <td><strong>Dedicated GPS Devices (VBOX, etc.)</strong></td>
+            <td>±0.05-0.1 seconds</td>
+            <td>$500-$3,000</td>
+            <td>5-10 minutes</td>
+          </tr>
+          <tr>
+            <td><strong>OBD-II Performance Meters</strong></td>
+            <td>±0.1-0.3 seconds</td>
+            <td>$100-$400</td>
+            <td>2-5 minutes</td>
+          </tr>
+          <tr>
+            <td><strong>0to60Timer.com (Phone)</strong></td>
+            <td>±0.2-0.5 seconds</td>
+            <td>Free</td>
+            <td>30 seconds</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="content-section">
+      <h2>What Affects Accuracy</h2>
+
+      <h3>GPS Update Rate</h3>
+      <p>Phone GPS typically updates at 1-10 Hz (1-10 times per second), compared to professional GPS devices that update at 10-20 Hz. This means there can be a slight delay in detecting when you reach the target speed. Our sensor fusion approach helps compensate by using accelerometer data between GPS updates.</p>
+
+      <h3>GPS Signal Quality</h3>
+      <p>GPS accuracy depends heavily on signal quality:</p>
+      <ul>
+        <li><strong>Best:</strong> Open areas with clear sky view (±3-5 meters accuracy)</li>
+        <li><strong>Good:</strong> Light tree cover or suburban areas (±5-10 meters)</li>
+        <li><strong>Poor:</strong> Urban canyons, heavy tree cover (±10-30 meters)</li>
+        <li><strong>Unusable:</strong> Tunnels, parking garages, indoors</li>
+      </ul>
+
+      <h3>Phone Mounting</h3>
+      <p>Any movement of your phone during acceleration will introduce errors. A secure, rigid mount is essential. Dashboard or windshield mounts work best. Avoid cup holders, loose mounts, or holding the phone by hand.</p>
+
+      <h3>Phone Model & Sensors</h3>
+      <p>Newer phones generally have better GPS chips and more accurate sensors. Flagship phones from 2020+ typically provide the best results. Budget phones or older models may have slower GPS update rates or less accurate accelerometers.</p>
+
+      <h3>Weather & Atmospheric Conditions</h3>
+      <p>Heavy rain, storms, or atmospheric interference can degrade GPS signal quality. Clear weather provides the most consistent results.</p>
+
+      <h3>Testing Surface</h3>
+      <p>Smooth, level pavement provides the most accurate results. Rough roads, hills, or uneven surfaces can affect accelerometer readings and introduce measurement errors.</p>
+    </section>
+
+    <section class="content-section">
+      <h2>Known Limitations</h2>
+
+      <h3>GPS Lag</h3>
+      <p>The most significant limitation is GPS update lag. When you reach 60 mph, there may be a 0.1-0.5 second delay before the GPS reports that speed. We use accelerometer data to estimate and compensate for this lag, but it's not perfect.</p>
+
+      <h3>Cold Start Delay</h3>
+      <p>When you first load the app or haven't used GPS recently, your phone needs time to acquire satellite locks. Wait for a strong GPS signal (indicated in the app) before starting your run.</p>
+
+      <h3>Not Suitable for Professional Racing</h3>
+      <p>This tool is designed for personal use and enthusiast-level testing. For official racing, sanctioned events, or precise engineering work, use professional timing equipment.</p>
+
+      <h3>Quarter Mile Distance Accuracy</h3>
+      <p>GPS-based distance measurements can vary by ±5-15 feet depending on signal quality. This can affect quarter mile times by 0.1-0.3 seconds. Multiple runs and averaging help mitigate this.</p>
+    </section>
+
+    <section class="content-section">
+      <h2>How to Get the Most Accurate Results</h2>
+
+      <div class="success-box">
+        <h3>Best Practices for Accurate Measurements</h3>
+        <ol>
+          <li><strong>Wait for strong GPS signal</strong> - Don't start until the app indicates good GPS lock</li>
+          <li><strong>Use a quality mount</strong> - Secure, rigid mounting is critical</li>
+          <li><strong>Test in open areas</strong> - Avoid areas with buildings, trees, or obstructions</li>
+          <li><strong>Test on straight, level roads</strong> - Turns and hills affect accuracy</li>
+          <li><strong>Perform multiple runs</strong> - Take 3-5 runs and average the results</li>
+          <li><strong>Test in good weather</strong> - Clear skies provide best GPS performance</li>
+          <li><strong>Keep phone cool</strong> - Overheating can affect sensor performance</li>
+          <li><strong>Close other apps</strong> - Ensure maximum processing power for the timer</li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="content-section">
+      <h2>Comparing Results</h2>
+      
+      <h3>Against Manufacturer Claims</h3>
+      <p>Manufacturer 0-60 times are typically achieved under ideal conditions with professional drivers, optimal weather, and prepared surfaces. Real-world results are usually 0.3-1.0 seconds slower. If your times are within this range, your measurements are likely accurate.</p>
+
+      <h3>Consistency is Key</h3>
+      <p>For tracking modifications or improvements, consistency matters more than absolute accuracy. Use the same testing location, conditions, and procedures for all runs to ensure valid comparisons.</p>
+
+      <h3>Run-to-Run Variation</h3>
+      <p>Even with professional equipment, expect 0.1-0.3 second variation between runs due to driver technique, tire temperature, fuel load, and environmental factors. If your times vary by more than 0.5 seconds, check your GPS signal and phone mounting.</p>
+    </section>
+
+    <div class="warning-box">
+      <h3>Safety First</h3>
+      <p>Always test in a safe, legal location. We recommend closed courses, drag strips, or private property with permission. Never test on public roads with traffic. Performance testing can be dangerous and should only be done by experienced drivers in controlled environments.</p>
+    </div>
+
+    <div class="cta-section">
+      <h2>Ready to Test Your Car?</h2>
+      <p>Now that you understand accuracy and limitations, start tracking your performance.</p>
+      <a href="access.html" class="cta-button">Get Started Now →</a>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-links">
+      <a href="/">Home</a>
+      <a href="features.html">Features</a>
+      <a href="how-it-works.html">How It Works</a>
+      <a href="accuracy.html">Accuracy</a>
+      <a href="faq.html">FAQ</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+      <a href="access.html">Get Started</a>
+    </div>
+    <p>&copy; 2025 0to60Timer.com. All rights reserved.</p>
+    <p style="margin-top: 1rem; font-size: 0.9rem;">
+      <a href="mailto:contact@0to60timer.com" style="color: var(--primary-color);">contact@0to60timer.com</a>
+    </p>
+  </footer>
+</body>
+</html>
+

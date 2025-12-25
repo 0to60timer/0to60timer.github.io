@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://auraprincipalgroup.com/sitemap.xml
+Sitemap: https://0to60timer.com/sitemap.xml

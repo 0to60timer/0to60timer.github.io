@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-90WH860WLK"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-90WH860WLK');
+  </script>
+  
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Primary Meta Tags -->
+  <title>How It Works - Sensor Fusion 0 to 60 Timer | 0to60timer.com</title>
+  <meta name="description" content="Learn how our 0 to 60 timer uses GPS and accelerometer sensor fusion to accurately measure your car's acceleration times.">
+  <meta name="robots" content="index, follow">
+
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://0to60timer.com/how-it-works.html">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://0to60timer.com/how-it-works.html">
+  <meta property="og:title" content="How It Works - 0 to 60 Timer">
+  <meta property="og:description" content="Learn how our sensor fusion technology accurately measures your car's acceleration.">
+  
+  <!-- Favicons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon.png">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --primary-color: #6C8EAD;
+      --primary-dark: #5A7694;
+      --primary-light: #8AA7C3;
+      --bg-dark: #0A0A0A;
+      --bg-light: #FFFFFF;
+      --text-dark: #1A1A1A;
+      --text-light: #FFFFFF;
+      --text-gray: #888888;
+      --border-color: #E0E0E0;
+      --success-color: #4CAF50;
+      --warning-color: #FF9800;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text-dark);
+      background: var(--bg-light);
+      line-height: 1.6;
+    }
+
+    /* Header */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .header-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--primary-color);
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+    }
+
+    .nav-links a {
+      color: var(--text-dark);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+
+    .nav-links a:hover {
+      color: var(--primary-color);
+    }
+
+    .cta-button {
+      background: var(--primary-color);
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    .cta-button:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    /* Main Content */
+    .main-content {
+      margin-top: 80px;
+      padding: 4rem 2rem;
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+
+    .page-header h1 {
+      font-size: 3rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+      color: var(--text-dark);
+    }
+
+    .page-header p {
+      font-size: 1.25rem;
+      color: var(--text-gray);
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .content-section {
+      margin-bottom: 4rem;
+    }
+
+    .content-section h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      color: var(--text-dark);
+    }
+
+    .content-section h3 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+      color: var(--text-dark);
+    }
+
+    .content-section p {
+      font-size: 1.1rem;
+      color: var(--text-gray);
+      margin-bottom: 1rem;
+      line-height: 1.8;
+    }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+      margin: 3rem 0;
+    }
+
+    .step-card {
+      padding: 2rem;
+      background: #F5F8FA;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .step-number {
+      width: 60px;
+      height: 60px;
+      background: var(--primary-color);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin: 0 auto 1.5rem;
+    }
+
+    .step-card h3 {
+      font-size: 1.3rem;
+      margin-top: 0;
+      margin-bottom: 1rem;
+    }
+
+    .step-card p {
+      font-size: 1rem;
+      margin-bottom: 0;
+    }
+
+    .info-box {
+      background: #F5F8FA;
+      border-left: 4px solid var(--primary-color);
+      padding: 1.5rem;
+      margin: 2rem 0;
+      border-radius: 8px;
+    }
+
+    .info-box h3 {
+      margin-top: 0;
+      color: var(--primary-color);
+    }
+
+    .sensor-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin: 2rem 0;
+    }
+
+    .sensor-card {
+      padding: 2rem;
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      background: white;
+    }
+
+    .sensor-card h3 {
+      margin-top: 0;
+      color: var(--primary-color);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .sensor-icon {
+      font-size: 1.5rem;
+    }
+
+    .cta-section {
+      background: var(--text-dark);
+      color: white;
+      padding: 3rem;
+      border-radius: 16px;
+      text-align: center;
+      margin-top: 4rem;
+    }
+
+    .cta-section h2 {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+    }
+
+    .cta-section p {
+      font-size: 1.1rem;
+      color: rgba(255, 255, 255, 0.8);
+      margin-bottom: 2rem;
+    }
+
+    .cta-section .cta-button {
+      font-size: 1.1rem;
+      padding: 1rem 2rem;
+    }
+
+    /* Footer */
+    .footer {
+      background: var(--bg-dark);
+      color: rgba(255, 255, 255, 0.7);
+      padding: 3rem 2rem 2rem;
+      text-align: center;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .footer-links a:hover {
+      color: var(--primary-color);
+    }
+
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+      }
+
+      .page-header h1 {
+        font-size: 2rem;
+      }
+
+      .steps-grid, .sensor-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-container">
+      <a href="/" class="logo">0to60Timer.com</a>
+      <nav class="nav-links">
+        <a href="/">Home</a>
+        <a href="features.html">Features</a>
+        <a href="how-it-works.html">How It Works</a>
+        <a href="accuracy.html">Accuracy</a>
+        <a href="faq.html">FAQ</a>
+        <a href="access.html" class="cta-button">Get Started</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="page-header">
+      <h1>How It Works</h1>
+      <p>Understanding the technology behind accurate phone-based 0-60 mph timing</p>
+    </div>
+
+    <section class="content-section">
+      <h2>Getting Started in 3 Simple Steps</h2>
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-number">1</div>
+          <h3>Grant Permissions</h3>
+          <p>Allow access to your device's motion sensors (accelerometer, gyroscope) and location (GPS) for accurate tracking.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number">2</div>
+          <h3>Mount Your Phone</h3>
+          <p>Securely mount your phone in your vehicle where it won't move during acceleration. A dashboard or windshield mount works best.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number">3</div>
+          <h3>Start Tracking</h3>
+          <p>Hit "Start Run" and accelerate. We'll automatically track your speed and calculate your times in real-time.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="content-section">
+      <h2>The Technology: Sensor Fusion</h2>
+      <p>Our 0 to 60 timer uses advanced sensor fusion technology to combine data from multiple sensors in your phone for more accurate measurements than GPS alone.</p>
+
+      <div class="sensor-grid">
+        <div class="sensor-card">
+          <h3><span class="sensor-icon">📡</span> GPS (Location)</h3>
+          <p>Provides absolute speed measurements by tracking your position over time. GPS is accurate for sustained speed but can have a slight delay in updates (typically 1-10 Hz).</p>
+        </div>
+        <div class="sensor-card">
+          <h3><span class="sensor-icon">📱</span> Accelerometer</h3>
+          <p>Measures acceleration forces in real-time at high frequency (50-100 Hz). Detects changes in speed instantly but can drift over time without GPS correction.</p>
+        </div>
+        <div class="sensor-card">
+          <h3><span class="sensor-icon">🧭</span> Gyroscope</h3>
+          <p>Tracks device orientation and rotation. Helps filter out non-forward acceleration (like turning or phone movement) for more accurate straight-line measurements.</p>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <h3>Why Sensor Fusion?</h3>
+        <p>By combining GPS and accelerometer data, we get the best of both worlds: the instant response of the accelerometer with the long-term accuracy of GPS. This hybrid approach provides more reliable measurements than either sensor alone.</p>
+      </div>
+    </section>
+
+    <section class="content-section">
+      <h2>How Measurements Work</h2>
+      
+      <h3>0-60 MPH Timer</h3>
+      <p>When you start a run, the timer begins when the system detects you're moving from a stop (typically above 2-3 mph to avoid false starts). The timer stops the moment you reach 60 mph. The elapsed time is your 0-60 time.</p>
+
+      <h3>0-100 MPH Timer</h3>
+      <p>Similar to 0-60, but measures the time to reach 100 mph. This test requires more space and is best performed on a track or closed course.</p>
+
+      <h3>Quarter Mile Timing</h3>
+      <p>Uses GPS to track distance traveled. The timer starts when you begin moving and stops when you've traveled exactly 1/4 mile (1,320 feet or 402 meters). Your trap speed (speed at the finish line) is also recorded.</p>
+
+      <h3>Custom Speed Intervals</h3>
+      <p>You can set any start and end speed to measure specific acceleration ranges, like 30-70 mph for highway passing performance.</p>
+    </section>
+
+    <section class="content-section">
+      <h2>What You Need</h2>
+      
+      <h3>Device Requirements</h3>
+      <p><strong>iPhone:</strong> iPhone 6s or newer with iOS 13+. All modern iPhones have the required sensors.</p>
+      <p><strong>Android:</strong> Android 8.0 or newer with GPS, accelerometer, and gyroscope. Most phones from 2017+ are compatible.</p>
+
+      <h3>Permissions Required</h3>
+      <p><strong>Location (GPS):</strong> Required for speed measurements and distance tracking. We need "Allow While Using" permission.</p>
+      <p><strong>Motion & Orientation:</strong> Required for accelerometer and gyroscope data. On iOS, this requires explicit permission; on Android, it's typically granted by default.</p>
+
+      <h3>Testing Environment</h3>
+      <p><strong>Clear GPS Signal:</strong> Best results in open areas with clear sky view. Avoid tunnels, parking garages, or areas with tall buildings.</p>
+      <p><strong>Straight Path:</strong> Perform tests on straight roads or tracks. Turns can affect accuracy.</p>
+      <p><strong>Safe Location:</strong> Always test in a safe, legal location. We recommend closed courses or drag strips.</p>
+      <p><strong>Secure Mount:</strong> Use a quality phone mount. Any phone movement during acceleration will affect accuracy.</p>
+    </section>
+
+    <section class="content-section">
+      <h2>Data Processing</h2>
+      <p>All processing happens locally on your device in real-time. We don't send your location or performance data to any servers. Your privacy is protected, and the app works even without an internet connection (after initial load).</p>
+      
+      <p>The sensor fusion algorithm continuously:</p>
+      <ul style="margin-left: 2rem; color: var(--text-gray); font-size: 1.1rem;">
+        <li>Reads GPS position and speed updates</li>
+        <li>Monitors accelerometer data at high frequency</li>
+        <li>Filters out noise and non-forward acceleration</li>
+        <li>Combines both data sources for optimal accuracy</li>
+        <li>Calculates speed, distance, and elapsed time</li>
+        <li>Detects when target speeds or distances are reached</li>
+      </ul>
+    </section>
+
+    <div class="cta-section">
+      <h2>Ready to Try It?</h2>
+      <p>See the sensor fusion technology in action. Start tracking your car's performance now.</p>
+      <a href="access.html" class="cta-button">Get Started Now →</a>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-links">
+      <a href="/">Home</a>
+      <a href="features.html">Features</a>
+      <a href="how-it-works.html">How It Works</a>
+      <a href="accuracy.html">Accuracy</a>
+      <a href="faq.html">FAQ</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+      <a href="access.html">Get Started</a>
+    </div>
+    <p>&copy; 2025 0to60Timer.com. All rights reserved.</p>
+    <p style="margin-top: 1rem; font-size: 0.9rem;">
+      <a href="mailto:contact@0to60timer.com" style="color: var(--primary-color);">contact@0to60timer.com</a>
+    </p>
+  </footer>
+</body>
+</html>
+

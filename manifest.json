@@ -1,20 +1,20 @@
 {
-  "name": "Aura Principal Group",
-  "short_name": "Aura Principal",
-  "description": "Investment Management & Venture Capital - Investing in venture and growing cash flow positive businesses",
+  "name": "0to60 Timer",
+  "short_name": "0to60Timer",
+  "description": "Free 0 to 60 timer for cars using your phone's GPS and motion sensors. Measure 0-60 mph, quarter mile times, and more.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#154854",
-  "theme_color": "#154854",
+  "background_color": "#6C8EAD",
+  "theme_color": "#6C8EAD",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "img/logos/aura-color-bg-square.png",
+      "src": "img/favicon.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "img/logos/aura-color-bg-square.png",
+      "src": "img/favicon.png",
       "sizes": "512x512",
       "type": "image/png"
     }

@@ -389,6 +389,9 @@
       display: none;
       align-items: center;
       justify-content: center;
+      pointer-events: auto;
+      user-select: auto;
+      -webkit-user-select: auto;
     }
 
     .modal.show {
@@ -404,6 +407,9 @@
       overflow-y: auto;
       display: flex;
       flex-direction: column;
+      position: relative; /* Ensure stacking context */
+      z-index: 2002; /* Ensure content is above backdrop */
+      pointer-events: auto; /* Force pointer events */
     }
 
     body.light-mode .modal-content {

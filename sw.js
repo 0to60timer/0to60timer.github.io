@@ -1,18 +1,22 @@
-// Service Worker for Aura Principal Group Website
+// Service Worker for 0to60 Timer Website
 // Version 1.0 - Basic caching for performance optimization
 
-const CACHE_NAME = 'aura-principal-group-v1';
+const CACHE_NAME = '0to60-timer-v1';
 const urlsToCache = [
   '/',
   '/index.html',
-  'img/logos/aura-color-transparent-bg.png',
-  'img/logos/aura-color-bg-wide.png',
+  '/features.html',
+  '/how-it-works.html',
+  '/accuracy.html',
+  '/faq.html',
+  '/privacy.html',
+  '/terms.html',
+  '/access.html',
+  '/tracker.html',
+  'img/tracker-images/homescreen-tracker-image.jpeg',
   'img/stock-images/cityline.avif',
   'img/stock-images/cityline.webp',
-  'img/stock-images/park-new-york-city-nyc-manhattan-162024.jpeg',
-  'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css',
-  'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css',
-  'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js'
+  'img/stock-images/park-new-york-city-nyc-manhattan-162024.jpeg'
 ];
 
 // Install event - cache resources

@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-90WH860WLK"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-90WH860WLK');
+  </script>
+  
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Primary Meta Tags -->
+  <title>FAQ - 0 to 60 Timer Questions | 0to60timer.com</title>
+  <meta name="description" content="Common questions about using our 0 to 60 timer. Device support, permissions, mounting, troubleshooting, and more.">
+  <meta name="robots" content="index, follow">
+
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://0to60timer.com/faq.html">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://0to60timer.com/faq.html">
+  <meta property="og:title" content="FAQ - 0 to 60 Timer">
+  <meta property="og:description" content="Common questions about using our 0 to 60 timer for cars.">
+  
+  <!-- Favicons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon.png">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Structured Data - FAQPage -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Does this work on iPhone and Android?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes! Our 0 to 60 timer works on both iPhone (iOS 13+) and Android (8.0+). Any modern smartphone with GPS, accelerometer, and gyroscope will work."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is it really free?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes, completely free. No subscriptions, no in-app purchases, no hidden fees. We don't even require an account."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How accurate is it compared to professional timing equipment?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Under good conditions, our timer is typically within ±0.2-0.5 seconds of professional equipment. While not as precise as $500+ systems, it's accurate enough for personal performance tracking and comparing modifications."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do I need an internet connection?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "You need internet to initially load the app, but after that, it works offline. GPS doesn't require internet—it receives signals directly from satellites."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What permissions do I need to grant?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "You need to allow Location (GPS) and Motion & Orientation (accelerometer/gyroscope) permissions. We only use these to measure your speed and acceleration—we don't track or store your location."
+        }
+      }
+    ]
+  }
+  </script>
+  
+  <style>
+    :root {
+      --primary-color: #6C8EAD;
+      --primary-dark: #5A7694;
+      --primary-light: #8AA7C3;
+      --bg-dark: #0A0A0A;
+      --bg-light: #FFFFFF;
+      --text-dark: #1A1A1A;
+      --text-light: #FFFFFF;
+      --text-gray: #888888;
+      --border-color: #E0E0E0;
+      --success-color: #4CAF50;
+      --warning-color: #FF9800;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text-dark);
+      background: var(--bg-light);
+      line-height: 1.6;
+    }
+
+    /* Header */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .header-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--primary-color);
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+    }
+
+    .nav-links a {
+      color: var(--text-dark);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+
+    .nav-links a:hover {
+      color: var(--primary-color);
+    }
+
+    .cta-button {
+      background: var(--primary-color);
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    .cta-button:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    /* Main Content */
+    .main-content {
+      margin-top: 80px;
+      padding: 4rem 2rem;
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+
+    .page-header h1 {
+      font-size: 3rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+      color: var(--text-dark);
+    }
+
+    .page-header p {
+      font-size: 1.25rem;
+      color: var(--text-gray);
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .faq-section {
+      margin-bottom: 3rem;
+    }
+
+    .faq-section h2 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 2rem;
+      color: var(--text-dark);
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--primary-color);
+    }
+
+    .faq-item {
+      margin-bottom: 2rem;
+      padding: 1.5rem;
+      background: #F5F8FA;
+      border-radius: 12px;
+      border-left: 4px solid var(--primary-color);
+    }
+
+    .faq-question {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 0.75rem;
+    }
+
+    .faq-answer {
+      font-size: 1.05rem;
+      color: var(--text-gray);
+      line-height: 1.7;
+    }
+
+    .faq-answer ul {
+      margin-top: 0.5rem;
+      margin-left: 1.5rem;
+    }
+
+    .faq-answer li {
+      margin-bottom: 0.5rem;
+    }
+
+    .faq-answer strong {
+      color: var(--text-dark);
+    }
+
+    .cta-section {
+      background: var(--text-dark);
+      color: white;
+      padding: 3rem;
+      border-radius: 16px;
+      text-align: center;
+      margin-top: 4rem;
+    }
+
+    .cta-section h2 {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+    }
+
+    .cta-section p {
+      font-size: 1.1rem;
+      color: rgba(255, 255, 255, 0.8);
+      margin-bottom: 2rem;
+    }
+
+    .cta-section .cta-button {
+      font-size: 1.1rem;
+      padding: 1rem 2rem;
+    }
+
+    /* Footer */
+    .footer {
+      background: var(--bg-dark);
+      color: rgba(255, 255, 255, 0.7);
+      padding: 3rem 2rem 2rem;
+      text-align: center;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .footer-links a:hover {
+      color: var(--primary-color);
+    }
+
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+      }
+
+      .page-header h1 {
+        font-size: 2rem;
+      }
+
+      .faq-question {
+        font-size: 1.1rem;
+      }
+
+      .faq-answer {
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-container">
+      <a href="/" class="logo">0to60Timer.com</a>
+      <nav class="nav-links">
+        <a href="/">Home</a>
+        <a href="features.html">Features</a>
+        <a href="how-it-works.html">How It Works</a>
+        <a href="accuracy.html">Accuracy</a>
+        <a href="faq.html">FAQ</a>
+        <a href="access.html" class="cta-button">Get Started</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="page-header">
+      <h1>Frequently Asked Questions</h1>
+      <p>Everything you need to know about using our free 0 to 60 timer</p>
+    </div>
+
+    <section class="faq-section">
+      <h2>Getting Started</h2>
+
+      <div class="faq-item">
+        <div class="faq-question">Does this work on iPhone and Android?</div>
+        <div class="faq-answer">
+          Yes! Our 0 to 60 timer works on both iPhone (iOS 13+) and Android (8.0+). Any modern smartphone with GPS, accelerometer, and gyroscope will work. Most phones from 2017 or newer are fully compatible.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Is it really free?</div>
+        <div class="faq-answer">
+          Yes, completely free. No subscriptions, no in-app purchases, no hidden fees. We don't even require an account. Just visit the site and start tracking.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Do I need to download an app?</div>
+        <div class="faq-answer">
+          No download required! This is a web app that runs directly in your browser. Just visit the site on your phone and you're ready to go. You can also add it to your home screen for quick access.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Do I need an internet connection?</div>
+        <div class="faq-answer">
+          You need internet to initially load the app, but after that, it works offline. GPS doesn't require internet—it receives signals directly from satellites. Once loaded, you can use it anywhere with GPS signal.
+        </div>
+      </div>
+    </section>
+
+    <section class="faq-section">
+      <h2>Permissions & Privacy</h2>
+
+      <div class="faq-item">
+        <div class="faq-question">What permissions do I need to grant?</div>
+        <div class="faq-answer">
+          You need to allow two permissions:
+          <ul>
+            <li><strong>Location (GPS):</strong> Required to measure your speed and distance</li>
+            <li><strong>Motion & Orientation:</strong> Required to access accelerometer and gyroscope data</li>
+          </ul>
+          We only use these to measure your speed and acceleration—we don't track or store your location.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Do you track my location or store my data?</div>
+        <div class="faq-answer">
+          No. All processing happens locally on your device. We don't send your location, speed data, or any personal information to our servers. Your runs are stored only in your browser's local storage on your device.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">How do I enable permissions on iPhone?</div>
+        <div class="faq-answer">
+          When you first use the app, Safari will ask for permissions. Tap "Allow" for both Location and Motion & Orientation. If you accidentally denied them, go to Settings → Safari → Location → select "Ask" or "Allow", then reload the page.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">How do I enable permissions on Android?</div>
+        <div class="faq-answer">
+          Chrome will prompt for location permission when you first use the app. Tap "Allow". If you need to change it later, tap the lock icon in the address bar → Permissions → Location → Allow. Motion sensors are typically enabled by default on Android.
+        </div>
+      </div>
+    </section>
+
+    <section class="faq-section">
+      <h2>Using the Timer</h2>
+
+      <div class="faq-item">
+        <div class="faq-question">How do I mount my phone in the car?</div>
+        <div class="faq-answer">
+          Use a secure dashboard or windshield mount. The phone must not move during acceleration. Avoid cup holders, loose mounts, or holding it by hand. Any phone movement will affect accuracy. Make sure the mount is tight and the phone is firmly secured.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Why do I need to wait for GPS signal?</div>
+        <div class="faq-answer">
+          When you first open the app or haven't used GPS recently, your phone needs time to acquire satellite locks. This "cold start" can take 30-60 seconds. Wait until the app shows a strong GPS signal before starting your run for best accuracy.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Can I use this on a track or drag strip?</div>
+        <div class="faq-answer">
+          Yes! Tracks and drag strips are ideal locations. They provide straight paths, clear GPS signal, and safe, controlled environments. This is where you'll get the most accurate and consistent results.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Can I save my runs?</div>
+        <div class="faq-answer">
+          Yes. The app automatically saves your runs in your browser's local storage. You can view your run history and see your best times. Data persists until you clear your browser data.
+        </div>
+      </div>
+    </section>
+
+    <section class="faq-section">
+      <h2>Accuracy & Performance</h2>
+
+      <div class="faq-item">
+        <div class="faq-question">How accurate is it compared to professional timing equipment?</div>
+        <div class="faq-answer">
+          Under good conditions, our timer is typically within <strong>±0.2-0.5 seconds</strong> of professional equipment. While not as precise as $500+ systems, it's accurate enough for personal performance tracking, comparing modifications, and general benchmarking. See our <a href="accuracy.html" style="color: var(--primary-color);">Accuracy page</a> for detailed information.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Why are my times slower than the manufacturer's specs?</div>
+        <div class="faq-answer">
+          Manufacturer times are achieved under ideal conditions with professional drivers, optimal weather, prepared surfaces, and sometimes with performance-enhancing options. Real-world results are typically 0.3-1.0 seconds slower. Factors like driver skill, tire condition, fuel load, altitude, and temperature all affect performance.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">My times vary between runs. Is something wrong?</div>
+        <div class="faq-answer">
+          Some variation is normal. Even with professional equipment, expect 0.1-0.3 second differences between runs due to driver technique, tire temperature, and environmental factors. If variation exceeds 0.5 seconds, check your GPS signal strength and phone mounting. Perform multiple runs and average the results for best accuracy.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Does weather affect accuracy?</div>
+        <div class="faq-answer">
+          Yes. Heavy rain, storms, or atmospheric interference can degrade GPS signal quality. Clear weather provides the most consistent results. Temperature and humidity also affect your car's performance, not just the timer.
+        </div>
+      </div>
+    </section>
+
+    <section class="faq-section">
+      <h2>Troubleshooting</h2>
+
+      <div class="faq-item">
+        <div class="faq-question">The app says "GPS signal weak" - what should I do?</div>
+        <div class="faq-answer">
+          <ul>
+            <li>Move to an open area with clear sky view</li>
+            <li>Wait 30-60 seconds for GPS to acquire satellites</li>
+            <li>Avoid areas with tall buildings, heavy tree cover, or tunnels</li>
+            <li>Make sure location permissions are enabled</li>
+            <li>Try restarting your phone if GPS won't connect</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">The timer isn't starting when I accelerate</div>
+        <div class="faq-answer">
+          Make sure you've pressed "Start Run" in the app first. The timer begins automatically when it detects movement above 2-3 mph. If it still doesn't work, check that location permissions are enabled and you have a strong GPS signal.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Speed readings seem inaccurate or jumpy</div>
+        <div class="faq-answer">
+          This usually indicates weak GPS signal. Move to an area with better sky view. Also ensure your phone is securely mounted and not moving. Phone movement can cause erratic readings.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">My saved runs disappeared</div>
+        <div class="faq-answer">
+          Runs are stored in your browser's local storage. If you cleared your browser data, switched browsers, or used incognito/private mode, your runs will be lost. Make sure to use the same browser and don't clear site data if you want to keep your history.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">The app won't load or keeps crashing</div>
+        <div class="faq-answer">
+          Try these steps:
+          <ul>
+            <li>Refresh the page</li>
+            <li>Clear your browser cache</li>
+            <li>Make sure you're using a modern browser (Safari on iOS, Chrome on Android)</li>
+            <li>Update your phone's operating system</li>
+            <li>Close other apps to free up memory</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="faq-section">
+      <h2>Safety & Legal</h2>
+
+      <div class="faq-item">
+        <div class="faq-question">Is it safe to use this while driving?</div>
+        <div class="faq-answer">
+          <strong>Performance testing should only be done in controlled, safe environments by experienced drivers.</strong> We recommend closed courses, drag strips, or private property with permission. Never test on public roads with traffic. Mount your phone securely before driving and don't interact with it during acceleration.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">Is this legal to use?</div>
+        <div class="faq-answer">
+          The app itself is legal. However, high-speed acceleration testing may be illegal on public roads depending on your location. Always follow local traffic laws and test only in appropriate locations. We are not responsible for how you use this tool.
+        </div>
+      </div>
+    </section>
+
+    <section class="faq-section">
+      <h2>Still Have Questions?</h2>
+      <div class="faq-item">
+        <div class="faq-question">How do I contact support?</div>
+        <div class="faq-answer">
+          Email us at <a href="mailto:contact@0to60timer.com" style="color: var(--primary-color); font-weight: 600;">contact@0to60timer.com</a>. We typically respond within 24-48 hours.
+        </div>
+      </div>
+    </section>
+
+    <div class="cta-section">
+      <h2>Ready to Get Started?</h2>
+      <p>All your questions answered? Time to track your car's performance.</p>
+      <a href="access.html" class="cta-button">Start Tracking Now →</a>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-links">
+      <a href="/">Home</a>
+      <a href="features.html">Features</a>
+      <a href="how-it-works.html">How It Works</a>
+      <a href="accuracy.html">Accuracy</a>
+      <a href="faq.html">FAQ</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+      <a href="access.html">Get Started</a>
+    </div>
+    <p>&copy; 2025 0to60Timer.com. All rights reserved.</p>
+    <p style="margin-top: 1rem; font-size: 0.9rem;">
+      <a href="mailto:contact@0to60timer.com" style="color: var(--primary-color);">contact@0to60timer.com</a>
+    </p>
+  </footer>
+</body>
+</html>
+

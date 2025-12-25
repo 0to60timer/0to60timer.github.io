@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-90WH860WLK"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-90WH860WLK');
+  </script>
+  
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Primary Meta Tags -->
+  <title>Features - 0 to 60 Timer, Quarter Mile & More | 0to60timer.com</title>
+  <meta name="description" content="Track 0-60 mph, 0-100 mph, quarter mile times, and more with our free phone-based timer. Comprehensive performance metrics for your car.">
+  <meta name="robots" content="index, follow">
+
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://0to60timer.com/features.html">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://0to60timer.com/features.html">
+  <meta property="og:title" content="Features - 0 to 60 Timer">
+  <meta property="og:description" content="Track 0-60 mph, 0-100 mph, quarter mile times, and more with our free phone-based timer.">
+  
+  <!-- Favicons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon.png">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --primary-color: #6C8EAD;
+      --primary-dark: #5A7694;
+      --primary-light: #8AA7C3;
+      --bg-dark: #0A0A0A;
+      --bg-light: #FFFFFF;
+      --text-dark: #1A1A1A;
+      --text-light: #FFFFFF;
+      --text-gray: #888888;
+      --border-color: #E0E0E0;
+      --success-color: #4CAF50;
+      --warning-color: #FF9800;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text-dark);
+      background: var(--bg-light);
+      line-height: 1.6;
+    }
+
+    /* Header */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .header-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--primary-color);
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+    }
+
+    .nav-links a {
+      color: var(--text-dark);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+
+    .nav-links a:hover {
+      color: var(--primary-color);
+    }
+
+    .cta-button {
+      background: var(--primary-color);
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    .cta-button:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    /* Main Content */
+    .main-content {
+      margin-top: 80px;
+      padding: 4rem 2rem;
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+
+    .page-header h1 {
+      font-size: 3rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+      color: var(--text-dark);
+    }
+
+    .page-header p {
+      font-size: 1.25rem;
+      color: var(--text-gray);
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .features-section {
+      margin-bottom: 4rem;
+    }
+
+    .features-section h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 2rem;
+      color: var(--text-dark);
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-bottom: 3rem;
+    }
+
+    .feature-card {
+      padding: 2rem;
+      border-radius: 16px;
+      border: 2px solid var(--border-color);
+      transition: all 0.3s;
+      background: white;
+    }
+
+    .feature-card:hover {
+      border-color: var(--primary-color);
+      transform: translateY(-5px);
+      box-shadow: 0 8px 24px rgba(108, 142, 173, 0.15);
+    }
+
+    .feature-icon {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+      color: white;
+    }
+
+    .feature-card h3 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      color: var(--text-dark);
+    }
+
+    .feature-card p {
+      color: var(--text-gray);
+      line-height: 1.6;
+    }
+
+    .metrics-list {
+      background: #F5F8FA;
+      padding: 2rem;
+      border-radius: 12px;
+      margin-top: 2rem;
+    }
+
+    .metrics-list h3 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      color: var(--text-dark);
+    }
+
+    .metrics-list ul {
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+    }
+
+    .metrics-list li {
+      padding: 1rem;
+      background: white;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .metrics-list li::before {
+      content: "✓";
+      color: var(--success-color);
+      font-weight: 800;
+      font-size: 1.2rem;
+    }
+
+    .cta-section {
+      background: var(--text-dark);
+      color: white;
+      padding: 3rem;
+      border-radius: 16px;
+      text-align: center;
+      margin-top: 4rem;
+    }
+
+    .cta-section h2 {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+    }
+
+    .cta-section p {
+      font-size: 1.1rem;
+      color: rgba(255, 255, 255, 0.8);
+      margin-bottom: 2rem;
+    }
+
+    .cta-section .cta-button {
+      font-size: 1.1rem;
+      padding: 1rem 2rem;
+    }
+
+    /* Footer */
+    .footer {
+      background: var(--bg-dark);
+      color: rgba(255, 255, 255, 0.7);
+      padding: 3rem 2rem 2rem;
+      text-align: center;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .footer-links a:hover {
+      color: var(--primary-color);
+    }
+
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+      }
+
+      .page-header h1 {
+        font-size: 2rem;
+      }
+
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .metrics-list ul {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-container">
+      <a href="/" class="logo">0to60Timer.com</a>
+      <nav class="nav-links">
+        <a href="/">Home</a>
+        <a href="features.html">Features</a>
+        <a href="how-it-works.html">How It Works</a>
+        <a href="accuracy.html">Accuracy</a>
+        <a href="faq.html">FAQ</a>
+        <a href="access.html" class="cta-button">Get Started</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="page-header">
+      <h1>Features - Track Every Performance Metric</h1>
+      <p>From 0-60 mph to quarter mile times, measure everything that matters with our comprehensive free timer for cars.</p>
+    </div>
+
+    <section class="features-section">
+      <h2>What You Can Measure</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🚀</div>
+          <h3>0-60 MPH Timer</h3>
+          <p>The classic acceleration test. Measure how quickly your car reaches 60 mph from a complete stop. Perfect for comparing your car's performance to manufacturer specs.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3>0-100 MPH Timer</h3>
+          <p>Test your car's high-speed acceleration. See how long it takes to reach 100 mph and compare with other performance vehicles.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🏁</div>
+          <h3>Quarter Mile Time</h3>
+          <p>The drag racing standard. Track your quarter mile (1/4 mile) time and trap speed. Essential for performance enthusiasts and racers.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📏</div>
+          <h3>Custom Speed Intervals</h3>
+          <p>Set any speed range you want to measure. Track 30-70 mph for highway passing, or create custom benchmarks for your specific needs.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <h3>Real-Time Speed Display</h3>
+          <p>Watch your speed update in real-time during runs. See your current speed, target speed, and elapsed time all at once.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">💾</div>
+          <h3>Run History & Best Times</h3>
+          <p>Save your runs and track your best times. Compare multiple runs to see improvements after modifications or tune-ups.</p>
+        </div>
+      </div>
+
+      <div class="metrics-list">
+        <h3>All Performance Metrics Tracked</h3>
+        <ul>
+          <li>0-60 mph acceleration time</li>
+          <li>0-100 mph acceleration time</li>
+          <li>Quarter mile (1/4 mile) time</li>
+          <li>Quarter mile trap speed</li>
+          <li>Custom speed intervals (e.g., 30-70 mph)</li>
+          <li>Real-time speed monitoring</li>
+          <li>GPS-based distance tracking</li>
+          <li>Accelerometer data fusion</li>
+          <li>Run history and statistics</li>
+          <li>Best time records</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="features-section">
+      <h2>Core Features</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">💰</div>
+          <h3>100% Free</h3>
+          <p>No subscriptions, no hidden fees, no in-app purchases. Professional-grade performance tracking without spending hundreds on dedicated equipment.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📱</div>
+          <h3>No Hardware Required</h3>
+          <p>Skip the expensive OBD-II scanners and GPS devices. Your smartphone has all the sensors you need: GPS, accelerometer, and gyroscope.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3>Setup in Seconds</h3>
+          <p>Grant sensor permissions and start tracking immediately. No complicated configuration, no account creation, no downloads required.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🎯</div>
+          <h3>Sensor Fusion Technology</h3>
+          <p>Advanced algorithms combine accelerometer and GPS data for more accurate measurements than GPS alone.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🌓</div>
+          <h3>Dark & Light Modes</h3>
+          <p>Clean, professional interface with automatic dark mode. Easy to read in any lighting condition, day or night.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📲</div>
+          <h3>Works on All Devices</h3>
+          <p>Compatible with iPhone and Android. Works on any modern smartphone with GPS and motion sensors.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="cta-section">
+      <h2>Ready to Track Your Car's Performance?</h2>
+      <p>Start measuring your 0-60 mph times, quarter mile runs, and more — completely free.</p>
+      <a href="access.html" class="cta-button">Get Started Now →</a>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-links">
+      <a href="/">Home</a>
+      <a href="features.html">Features</a>
+      <a href="how-it-works.html">How It Works</a>
+      <a href="accuracy.html">Accuracy</a>
+      <a href="faq.html">FAQ</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+      <a href="access.html">Get Started</a>
+    </div>
+    <p>&copy; 2025 0to60Timer.com. All rights reserved.</p>
+    <p style="margin-top: 1rem; font-size: 0.9rem;">
+      <a href="mailto:contact@0to60timer.com" style="color: var(--primary-color);">contact@0to60timer.com</a>
+    </p>
+  </footer>
+</body>
+</html>
+

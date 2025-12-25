@@ -1,4 +1,5 @@
 // Tracker App - Optimized for mobile racing
+// Enhanced sensor fusion for accurate speed tracking
 class SpeedTracker {
   constructor() {
     // Settings
@@ -33,7 +34,7 @@ class SpeedTracker {
     this.lastValidAcceleration = 0;
     this.deviceMotionActive = false; // Track if device motion listener is active
     
-    // GPS
+    // GPS - Enhanced for sensor fusion
     this.gpsSpeed = 0;
     this.gpsLastUpdate = 0;
     this.gpsAvailable = false;
@@ -43,6 +44,30 @@ class SpeedTracker {
     this.gpsDistance = 0; // Track GPS-measured distance
     this.lastDriftCheckTime = 0; // For periodic drift correction
     this.consecutiveZeroGPS = 0; // Count how many times GPS shows zero speed
+    
+    // === ENHANCED SENSOR FUSION ===
+    // Kalman-like filter state
+    this.fusedSpeed = 0; // The final fused speed (m/s)
+    this.speedEstimateUncertainty = 10; // Uncertainty of our speed estimate
+    this.gpsAccuracy = 0; // GPS accuracy from coords.accuracy
+    this.lastFusionTime = 0;
+    
+    // GPS history for smoothing and reliability detection
+    this.gpsSpeedHistory = []; // Last N GPS readings
+    this.gpsSpeedHistoryMaxSize = 10;
+    this.gpsReliabilityScore = 0; // 0-1, how reliable is GPS right now
+    
+    // Accelerometer integration state
+    this.accelIntegratedSpeed = 0; // Speed from accelerometer integration
+    this.accelSpeedUncertainty = 0; // Grows with integration time
+    this.lastAccelTimestamp = 0;
+    this.accelDriftRate = 0.5; // m/s per second of drift uncertainty
+    
+    // Moving start detection
+    this.initialGpsReceived = false;
+    this.wasMovingAtStart = false;
+    this.startupGpsReadings = [];
+    this.startupComplete = false;
     
     // Launch detection
     this.launchDetected = false;
@@ -269,24 +294,40 @@ class SpeedTracker {
       }
     }
     
-    // Start calibration
-    if (!this.isCalibrated) {
+    // Start calibration - skip if user was moving at start
+    if (!this.isCalibrated && !this.wasMovingAtStart) {
       await this.startCalibration();
+    } else if (this.wasMovingAtStart) {
+      console.log('Skipping calibration - moving start detected, using GPS for initial state');
     }
     
     // Begin run
     this.isRunning = true;
     this.runStartTime = performance.now();
+    
+    // === SENSOR FUSION STATE RESET ===
+    // Don't reset velocity to 0 if we detected moving start
+    if (!this.wasMovingAtStart) {
     this.velocity = 0;
+      this.fusedSpeed = 0;
+      this.accelIntegratedSpeed = 0;
+    }
+    // If wasMovingAtStart is true, velocity was already set from GPS in detectMovingStart()
+    
     this.distance = 0;
     this.gpsDistance = 0; // Reset GPS distance tracking
     this.lastDriftCheckTime = 0; // Reset drift check timer
     this.consecutiveZeroGPS = 0; // Reset zero GPS counter
+    this.speedEstimateUncertainty = this.wasMovingAtStart ? 2 : 10;
+    this.accelSpeedUncertainty = 0;
+    this.lastFusionTime = 0;
+    this.lastAccelTimestamp = 0;
+    
     this.chartData = [];
     this.lastTimestamp = 0;
     this.accelerationBuffer = [];
     this.velocityBuffer = [];
-    this.isMoving = false;
+    this.isMoving = this.wasMovingAtStart; // Keep moving state if already moving
     this.launchDetected = false;
     this.launchTime = null;
     this.launchAccelerationBuffer = [];
@@ -318,6 +359,13 @@ class SpeedTracker {
       navigator.geolocation.clearWatch(this.gpsWatchId);
       this.gpsWatchId = null;
     }
+    
+    // Reset sensor fusion state for next run
+    this.startupComplete = false;
+    this.wasMovingAtStart = false;
+    this.startupGpsReadings = [];
+    this.gpsSpeedHistory = [];
+    this.initialGpsReceived = false;
     
     this.saveRun();
   }
@@ -394,6 +442,16 @@ class SpeedTracker {
 
   processSensorData(data) {
     let calibratedData;
+    
+    // Track time since last accelerometer reading for fusion
+    const timeSinceLastAccel = this.lastAccelTimestamp > 0 ? 
+      (data.timestamp - this.lastAccelTimestamp) / 1000 : 0;
+    this.lastAccelTimestamp = data.timestamp;
+    
+    // If too much time passed (screen lock/background), increase uncertainty
+    if (timeSinceLastAccel > 0.5) {
+      this.accelSpeedUncertainty += timeSinceLastAccel * this.accelDriftRate * 2;
+    }
     
     if (data.isLinear) {
       // Linear acceleration: just apply calibration offset (for sensor bias)
@@ -497,9 +555,40 @@ class SpeedTracker {
     const now = performance.now();
     this.gpsLastUpdate = now;
     
+    // Store GPS accuracy for fusion weighting
+    this.gpsAccuracy = position.coords.accuracy || 20; // meters, default 20 if unavailable
+    
     if (position.coords.speed !== null && position.coords.speed >= 0) {
       this.gpsSpeed = position.coords.speed; // m/s
       this.gpsAvailable = true;
+      
+      // === MOVING START DETECTION ===
+      // Collect GPS readings during startup to detect if user opened app while moving
+      if (!this.startupComplete) {
+        this.startupGpsReadings.push({
+          speed: this.gpsSpeed,
+          accuracy: this.gpsAccuracy,
+          timestamp: now
+        });
+        
+        // After 3 GPS readings or 2 seconds, determine if we're moving at start
+        if (this.startupGpsReadings.length >= 3 || 
+            (this.startupGpsReadings.length > 0 && 
+             now - this.startupGpsReadings[0].timestamp > 2000)) {
+          this.detectMovingStart();
+        }
+      }
+      
+      // === GPS RELIABILITY TRACKING ===
+      this.gpsSpeedHistory.push({
+        speed: this.gpsSpeed,
+        accuracy: this.gpsAccuracy,
+        timestamp: now
+      });
+      if (this.gpsSpeedHistory.length > this.gpsSpeedHistoryMaxSize) {
+        this.gpsSpeedHistory.shift();
+      }
+      this.updateGpsReliability();
       
       // Track consecutive zero speed readings
       if (this.gpsSpeed < 0.3) {
@@ -507,6 +596,10 @@ class SpeedTracker {
       } else {
         this.consecutiveZeroGPS = 0;
       }
+      
+      // === SENSOR FUSION UPDATE ===
+      // When we get a GPS update, fuse it with accelerometer data
+      this.performSensorFusion(now);
     }
     
     if (this.lastGpsPosition && this.isRunning) {
@@ -521,18 +614,132 @@ class SpeedTracker {
       if (distance > 0 && distance < 100) { // Sanity check: ignore jumps > 100m
         this.gpsDistance += distance;
       }
-      
-      const timeDiff = (now - this.lastGpsPosition.timestamp) / 1000;
-      if (timeDiff > 0 && distance > 0) {
-        const gpsCalculatedSpeed = distance / timeDiff;
-        this.validateAccelerometerSpeed(gpsCalculatedSpeed);
-      }
     }
     
     this.lastGpsPosition = {
       coords: position.coords,
       timestamp: now
     };
+  }
+  
+  // Detect if user opened app while already moving
+  detectMovingStart() {
+    if (this.startupComplete) return;
+    this.startupComplete = true;
+    
+    // Filter for readings with reasonable accuracy
+    const reliableReadings = this.startupGpsReadings.filter(r => r.accuracy < 30);
+    
+    if (reliableReadings.length === 0) {
+      console.log('No reliable GPS readings during startup - assuming stationary');
+      this.wasMovingAtStart = false;
+      return;
+    }
+    
+    // Calculate average speed from startup readings
+    const avgSpeed = reliableReadings.reduce((sum, r) => sum + r.speed, 0) / reliableReadings.length;
+    
+    // If average speed > 2 m/s (~4.5 mph), user was moving at start
+    if (avgSpeed > 2.0) {
+      this.wasMovingAtStart = true;
+      console.log(`Moving start detected! Avg GPS speed: ${(avgSpeed * 2.237).toFixed(1)} mph`);
+      
+      // Initialize fused speed from GPS instead of 0
+      this.fusedSpeed = avgSpeed;
+      this.velocity = avgSpeed;
+      this.accelIntegratedSpeed = avgSpeed;
+      
+      // Skip accelerometer calibration - it would be wrong while moving
+      // Trust GPS entirely for initial state
+      this.isCalibrated = true;
+      this.speedEstimateUncertainty = this.gpsAccuracy * 0.1; // Lower uncertainty since GPS is reliable
+    } else {
+      this.wasMovingAtStart = false;
+      console.log('Stationary start detected - normal calibration applies');
+    }
+  }
+  
+  // Calculate GPS reliability based on recent readings
+  updateGpsReliability() {
+    if (this.gpsSpeedHistory.length < 2) {
+      this.gpsReliabilityScore = 0.3; // Low confidence with minimal data
+      return;
+    }
+    
+    let reliability = 1.0;
+    
+    // Factor 1: Accuracy (better accuracy = higher reliability)
+    const avgAccuracy = this.gpsSpeedHistory.reduce((sum, r) => sum + r.accuracy, 0) / 
+                        this.gpsSpeedHistory.length;
+    if (avgAccuracy > 50) reliability *= 0.3;
+    else if (avgAccuracy > 20) reliability *= 0.7;
+    else if (avgAccuracy > 10) reliability *= 0.9;
+    
+    // Factor 2: Speed consistency (sudden jumps reduce reliability)
+    if (this.gpsSpeedHistory.length >= 3) {
+      const speeds = this.gpsSpeedHistory.map(r => r.speed);
+      const maxJump = Math.max(...speeds.slice(1).map((s, i) => Math.abs(s - speeds[i])));
+      // If speed jumped by more than 5 m/s (~11 mph) between readings, reduce reliability
+      if (maxJump > 5) reliability *= 0.5;
+      else if (maxJump > 3) reliability *= 0.7;
+    }
+    
+    // Factor 3: Time since last reading (older = less reliable)
+    const timeSinceLast = (performance.now() - this.gpsLastUpdate) / 1000;
+    if (timeSinceLast > 3) reliability *= 0.5;
+    else if (timeSinceLast > 2) reliability *= 0.7;
+    
+    this.gpsReliabilityScore = Math.max(0.1, Math.min(1.0, reliability));
+  }
+  
+  // Core sensor fusion algorithm
+  performSensorFusion(now) {
+    const dt = (now - this.lastFusionTime) / 1000;
+    if (this.lastFusionTime === 0 || dt <= 0) {
+      this.lastFusionTime = now;
+      return;
+    }
+    
+    // === KALMAN-LIKE FUSION ===
+    // We have two estimates:
+    // 1. GPS speed (direct measurement, periodic)
+    // 2. Accelerometer-integrated speed (continuous but drifts)
+    
+    // GPS measurement uncertainty based on accuracy and reliability
+    const gpsSpeedUncertainty = Math.max(0.5, this.gpsAccuracy * 0.05) / this.gpsReliabilityScore;
+    
+    // Accelerometer uncertainty grows with time since last GPS
+    this.accelSpeedUncertainty += this.accelDriftRate * dt;
+    
+    // Kalman gain: how much to trust GPS vs prediction
+    // Higher gain = trust GPS more
+    const totalUncertainty = this.speedEstimateUncertainty + gpsSpeedUncertainty;
+    const kalmanGain = this.speedEstimateUncertainty / Math.max(totalUncertainty, 0.1);
+    
+    // Update fused speed
+    const innovation = this.gpsSpeed - this.fusedSpeed;
+    this.fusedSpeed += kalmanGain * innovation;
+    
+    // Update uncertainty (reduced by measurement)
+    this.speedEstimateUncertainty = (1 - kalmanGain) * this.speedEstimateUncertainty;
+    
+    // === ZERO SPEED ANCHORING ===
+    // If GPS consistently shows very low speed, anchor to zero
+    if (this.consecutiveZeroGPS >= 3 && this.gpsSpeed < 0.5 && this.gpsReliabilityScore > 0.5) {
+      this.fusedSpeed = 0;
+      this.accelIntegratedSpeed = 0;
+      this.speedEstimateUncertainty = 0.5;
+      this.velocity = 0;
+    }
+    
+    // Sync velocity with fused speed
+    this.velocity = Math.max(0, this.fusedSpeed);
+    
+    // Reset accelerometer integration anchor to GPS
+    this.accelIntegratedSpeed = this.fusedSpeed;
+    this.accelSpeedUncertainty = gpsSpeedUncertainty; // Reset drift
+    
+    this.lastFusionTime = now;
   }
 
   calculateDistance(lat1, lon1, lat2, lon2) {
@@ -546,14 +753,14 @@ class SpeedTracker {
     return R * c;
   }
 
+  // Legacy method - now integrated into performSensorFusion
   validateAccelerometerSpeed(gpsSpeed) {
-    const accelerometerSpeed = Math.abs(this.velocity);
-    const speedDifference = Math.abs(accelerometerSpeed - gpsSpeed);
+    // This is now handled by performSensorFusion()
+    // Keep for compatibility but functionality moved to Kalman-like fusion
+    const speedDifference = Math.abs(this.velocity - gpsSpeed);
     const tolerance = Math.max(gpsSpeed * 0.3, 2.0);
     
     if (speedDifference > tolerance) {
-      const correctionFactor = gpsSpeed / Math.max(accelerometerSpeed, 0.1);
-      this.velocity *= Math.min(Math.max(correctionFactor, 0.5), 2.0);
       this.velocityConfidence = Math.max(0, this.velocityConfidence - 0.2);
     } else {
       this.velocityConfidence = Math.min(1.0, this.velocityConfidence + 0.1);
@@ -571,9 +778,19 @@ class SpeedTracker {
     // Cap dt to prevent huge velocity spikes after screen wake
     // If dt > 0.5 seconds, the app was likely backgrounded/screen locked
     if (dt > 0.5) {
-      console.warn(`Large dt detected (${dt.toFixed(2)}s), likely from screen lock. Resetting velocity.`);
+      console.warn(`Large dt detected (${dt.toFixed(2)}s), likely from screen lock. Resetting to GPS.`);
+      // Reset to GPS speed instead of zero if GPS is available
+      if (this.gpsAvailable && this.gpsReliabilityScore > 0.3) {
+        this.velocity = this.gpsSpeed;
+        this.fusedSpeed = this.gpsSpeed;
+        this.accelIntegratedSpeed = this.gpsSpeed;
+      } else {
       this.velocity = 0;
+        this.fusedSpeed = 0;
+        this.accelIntegratedSpeed = 0;
+      }
       this.velocityBuffer = [];
+      this.speedEstimateUncertainty = 5; // Reset uncertainty
       this.lastTimestamp = timeElapsed;
       return; // Skip this update entirely
     }
@@ -585,7 +802,7 @@ class SpeedTracker {
     
     // GPS fusion
     const gpsAge = (sensorData.timestamp - this.gpsLastUpdate) / 1000;
-    const gpsReliable = this.gpsAvailable && gpsAge < 2.0;
+    const gpsReliable = this.gpsAvailable && gpsAge < 2.0 && this.gpsReliabilityScore > 0.3;
 
     // Update stationary duration (REAL TIME TRACKING)
     if (!sensorData.isMoving && acceleration < this.motionThreshold) {
@@ -594,17 +811,18 @@ class SpeedTracker {
       this.stationaryDuration = 0;
     }
 
-    // Rule: If stationary for > 3 seconds, do not increase speed (Force 0 and Recalibrate)
-    if (this.stationaryDuration > 3.0) {
+    // Rule: If stationary for > 3 seconds AND GPS confirms, force zero and recalibrate
+    if (this.stationaryDuration > 3.0 && (!gpsReliable || this.gpsSpeed < 0.5)) {
       if (this.velocity > 0) {
         console.log('Stationary > 3s detected. Forcing zero and recalibrating.');
       }
       this.velocity = 0;
+      this.fusedSpeed = 0;
+      this.accelIntegratedSpeed = 0;
       this.velocityBuffer = [];
+      this.speedEstimateUncertainty = 0.5;
       
-      // Fix "rate of increase" by removing bias
-      // Only recalibrate if we haven't done so recently (e.g., every 3s) to avoid jitter
-      // But since we are stationary, continuous recalibration is fine as it converges.
+      // Recalibrate bias while stationary
       this.recalibrateBias();
       
       this.lastTimestamp = timeElapsed;
@@ -615,91 +833,118 @@ class SpeedTracker {
       return;
     }
     
-    // CRITICAL: Zero velocity detection - multiple checks
+    // === ENHANCED SENSOR FUSION VELOCITY UPDATE ===
+    // Between GPS updates, use accelerometer to refine the estimate
+    
+    // Update accelerometer-integrated speed
+    if (sensorData.isMoving && acceleration > this.motionThreshold) {
+      const velocityChange = acceleration * dt;
+      this.accelIntegratedSpeed += velocityChange;
+      
+      // Increase uncertainty as we integrate without GPS correction
+      this.speedEstimateUncertainty += this.accelDriftRate * dt;
+    }
+    
+    // Determine primary velocity source based on sensor reliability
+    if (gpsReliable) {
+      // GPS is reliable - weight heavily toward GPS
+      // Use accelerometer only for smoothing between GPS updates
+      const gpsWeight = Math.min(0.8, 0.5 + this.gpsReliabilityScore * 0.3);
+      const accelWeight = 1 - gpsWeight;
+      
+      // Blend GPS with accelerometer-refined estimate
+      this.velocity = gpsWeight * this.gpsSpeed + accelWeight * this.accelIntegratedSpeed;
+      this.fusedSpeed = this.velocity;
+      
+      // Clamp accelerometer estimate toward GPS to prevent drift accumulation
+      const accelDrift = Math.abs(this.accelIntegratedSpeed - this.gpsSpeed);
+      if (accelDrift > 2.0) { // If accelerometer drifted more than 2 m/s
+        // Pull accelerometer estimate back toward GPS
+        this.accelIntegratedSpeed = 0.7 * this.accelIntegratedSpeed + 0.3 * this.gpsSpeed;
+      }
+    } else {
+      // GPS is stale or unreliable - use accelerometer with caution
+      this.velocity = this.accelIntegratedSpeed;
+      this.fusedSpeed = this.velocity;
+      
+      // Apply velocity decay if no acceleration detected (prevent runaway drift)
+      if (!sensorData.isMoving || acceleration < this.motionThreshold * 0.5) {
+        this.velocity *= 0.98; // Gentle decay
+        this.accelIntegratedSpeed = this.velocity;
+        this.fusedSpeed = this.velocity;
+      }
+    }
+    
+    // === ZERO SPEED ANCHORING ===
+    // Multiple checks to ensure we don't show false speed when stationary
+    
     // Check 1: GPS says we're stopped
     if (gpsReliable && this.gpsSpeed < 0.3 && this.consecutiveZeroGPS >= 3) {
       this.velocity = 0;
+      this.fusedSpeed = 0;
+      this.accelIntegratedSpeed = 0;
       this.velocityBuffer = [];
-      // Also trust GPS over accel drift
-      this.stationaryDuration += dt; // Treat as stationary
+      this.stationaryDuration += dt;
     }
     
-    // Check 2: No significant acceleration detected
+    // Check 2: No significant acceleration and low velocity
     if (!sensorData.isMoving && this.velocity < 2.0) {
       if (gpsReliable && this.gpsSpeed < 1.0) {
-        this.velocity = 0; // Hard zero when GPS confirms stopped
-      } else {
-        this.velocity *= 0.6; // Aggressive decay
-      }
-      
-      // Tilt Rejection: If velocity is small and we aren't "moving" (high accel), kill it.
-      // 0.89 m/s is approx 2 mph. If we are under this and not accelerating, assume noise/tilt.
-      if (Math.abs(this.velocity) < 0.89) {
         this.velocity = 0;
+        this.fusedSpeed = 0;
+        this.accelIntegratedSpeed = 0;
+      } else if (this.velocity < 0.89) {
+        // Tilt rejection threshold: ~2 mph
+        this.velocity = 0;
+        this.fusedSpeed = 0;
+        this.accelIntegratedSpeed = 0;
       }
     }
     
     // Check 3: Periodic distance validation (every 2 seconds)
-    if (timeElapsed - this.lastDriftCheckTime > 2.0 && this.gpsDistance > 0) {
+    if (timeElapsed - this.lastDriftCheckTime > 2.0 && this.gpsDistance > 0 && this.distance > 5) {
       const distanceDiff = Math.abs(this.distance - this.gpsDistance);
       const distanceError = this.distance > 0 ? distanceDiff / this.distance : 0;
       
       // If accelerometer distance is more than 20% off from GPS distance
-      if (distanceError > 0.2) {
-        // Only warn, let the robust logic handle it
-        // console.warn(`Distance drift detected: Accel=${this.distance.toFixed(1)}m, GPS=${this.gpsDistance.toFixed(1)}m`);
-        
-        // Correct the accumulated distance
+      if (distanceError > 0.2 && gpsReliable) {
         const correctionFactor = this.gpsDistance / Math.max(this.distance, 0.1);
-        this.distance *= correctionFactor;
+        this.distance = this.gpsDistance; // Snap to GPS distance
         
-        // Also correct velocity proportionally
-        this.velocity *= correctionFactor;
-        this.velocityBuffer = []; // Clear buffer after correction
+        // Also correct velocity toward GPS
+        if (correctionFactor < 0.8 || correctionFactor > 1.2) {
+          this.velocity = this.gpsSpeed;
+          this.fusedSpeed = this.gpsSpeed;
+          this.accelIntegratedSpeed = this.gpsSpeed;
+        }
+        this.velocityBuffer = [];
       }
       
       this.lastDriftCheckTime = timeElapsed;
     }
     
-    // Update velocity
-    if (sensorData.isMoving && acceleration > this.motionThreshold) {
-      const velocityChange = acceleration * dt;
-      this.velocity += velocityChange;
-      
-      // Stronger GPS fusion when GPS is reliable
-      if (gpsReliable && this.gpsSpeed >= 0) {
-        // Increase GPS weight based on confidence
-        const gpsWeight = Math.min(0.5, this.velocityConfidence * 0.7);
-        this.velocity = (1 - gpsWeight) * this.velocity + gpsWeight * this.gpsSpeed;
-      }
-      
+    // Velocity buffer for smoothing display
       this.velocityBuffer.push(this.velocity);
-      if (this.velocityBuffer.length > 10) {
+    if (this.velocityBuffer.length > 5) {
         this.velocityBuffer.shift();
       }
       
+    // Use median for display smoothing
       if (this.velocityBuffer.length >= 3) {
         const sortedVelocities = [...this.velocityBuffer].sort((a, b) => a - b);
         const medianIndex = Math.floor(sortedVelocities.length / 2);
         this.velocity = sortedVelocities[medianIndex];
-      }
-    }
-    
-    // Additional drift correction - if GPS shows low speed but velocity is high
-    if (gpsReliable && this.gpsSpeed < 1.0 && Math.abs(this.velocity) > 2.0) {
-      this.velocity = this.gpsSpeed; // Trust GPS over accelerometer
-      this.velocityBuffer = [];
     }
     
     // Prevent unrealistic velocity (sanity check - max ~223 mph / 360 kph)
     const maxRealisticSpeed = 100; // m/s
     if (Math.abs(this.velocity) > maxRealisticSpeed) {
-      this.velocity = 0;
+      this.velocity = gpsReliable ? this.gpsSpeed : 0;
     }
     
-    // Final sanity check is now handled by the 3s rule
-    
     this.velocity = Math.max(0, this.velocity);
+    this.fusedSpeed = this.velocity;
+    this.accelIntegratedSpeed = Math.max(0, this.accelIntegratedSpeed);
     
     // Launch detection
     if (!this.launchDetected) {
@@ -1295,8 +1540,14 @@ class SpeedTracker {
       this.stopRun();
     }
     
+    // Reset all velocity and sensor fusion state
     this.velocity = 0;
+    this.fusedSpeed = 0;
+    this.accelIntegratedSpeed = 0;
+    this.speedEstimateUncertainty = 10;
+    this.accelSpeedUncertainty = 0;
     this.distance = 0;
+    this.gpsDistance = 0;
     this.chartData = [];
     this.elements.speedValue.textContent = '0';
     
